@@ -1,0 +1,14 @@
+body {
+    padding: 30px;
+    font-family: sans-serif;
+}
+
+.musicFileItem {
+    padding: 5px;
+}
+
+h1 {
+    padding: 40px 15px;
+    text-align: center;
+}
+

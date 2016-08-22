@@ -1,0 +1,42 @@
+// reload list of music files and render it
+function refreshMusicFiles() {
+    $.getJSON('json/musicfiles', function(data) {
+        var fileList = $("#musicFiles");
+
+        fileList.empty();
+
+        $.each(data, function(i, f) {
+            var li = $('<li/>')
+                .attr('id', f.hash)
+                .addClass('musicFileItem')
+                .text(f.name + '   ')
+                .appendTo(fileList);
+
+            var href = $('<button/>')
+                .attr('type', 'button')
+                .addClass("btn btn-default")
+                .click(function() { writeNFC(f.hash); })
+                .text('write to tag')
+                .appendTo(li);
+                        
+        });
+    });
+}
+
+
+function writeNFC(data) {
+    $.getJSON('actions/writenfc?data=' + data, function(ret) {
+        setStatus(ret.message);
+    });
+}
+
+
+function setStatus(status) {
+    var statusBox = $('#statusBox');
+    
+    statusBox.empty();
+
+    $('<p/>')
+        .text('Status: ' + status)
+        .appendTo(statusBox);
+}

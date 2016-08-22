@@ -1,0 +1,3 @@
+SERVER_HOST_MASK = "0.0.0.0"
+MUSIC_ROOT="/home/pi/Music"
+DEFAULT_VOLUME=40
