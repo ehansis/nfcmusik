@@ -1,6 +1,6 @@
 # nfcmusik
 
-*Goal:* build a simple mp3 player that is usable for toddlers, based on a raspberry pi.
+**Goal:** build a simple mp3 player that is usable for toddlers, based on a raspberry pi.
 
 Music is started via placing an NFC token on a sensor.
 That's all the user interface there is.
@@ -31,5 +31,4 @@ Install these with `pip install <package>`
 
 Clone into a directory of your choice on the RasPi. Run `controller.py` to start. 
 See comment in `controller.py` for how to autostart on reboot.
-
 
