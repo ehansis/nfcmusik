@@ -19,6 +19,9 @@
     <div class="container" id="statusBox">
     </div>
 
+    <div class="container" id="nfcStatusBox">
+    </div>
+
     <div class="container">
         <h2>Available music files</h2>
         <ul id=musicFiles></ul>
@@ -33,6 +36,7 @@
     $( document ).ready(function() {
         refreshMusicFiles();
         setStatus("Ready!");
+        pollNFC();
     });
     </script>
   </body>

@@ -347,13 +347,3 @@ class RFID:
             self.stop_crypto()
         GPIO.cleanup()
 
-    def util(self):
-        """
-        Creates and returns RFIDUtil object for this RFID instance.
-        If module is not present, returns None.
-        """
-        try:
-            import RFIDUtil
-            return RFIDUtil.RFIDUtil(self)
-        except ImportError:
-            return None

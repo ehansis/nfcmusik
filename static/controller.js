@@ -40,3 +40,21 @@ function setStatus(status) {
         .text('Status: ' + status)
         .appendTo(statusBox);
 }
+
+
+function pollNFC(){
+    $.getJSON('json/readnfc', function(data) {
+
+        var nfcStatus = $('#nfcStatusBox');
+
+        nfcStatus.empty();
+
+        $('<p/>')
+            .text('NFC Tag Status: ' + data['description'] + ' (UID:' + data['uid'] + ', data: ' + data['data'] + ')')
+            .appendTo(nfcStatus);
+
+        // poll again in 1 sec
+        setTimeout(pollNFC, 1000);
+    });
+}
+
