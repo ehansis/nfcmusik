@@ -302,7 +302,7 @@ class RFID:
         buf.append(crc[1])
         (error, back_data, back_length) = self.card_write(self.mode_transrec, buf)
 
-        if len(back_data) != 16:
+        if len(back_data) != self.length:
             error = True
 
         return (error, back_data)
@@ -324,7 +324,7 @@ class RFID:
 
         if not error:
             buf_w = []
-            for i in range(16):
+            for i in range(self.length):
                 buf_w.append(data[i])
                
             crc = self.calculate_crc(buf_w)

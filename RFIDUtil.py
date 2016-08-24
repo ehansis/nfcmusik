@@ -12,15 +12,28 @@ class RFIDUtil:
     def __init__(self, rfid):
         self.rfid = rfid
 
-    def block_addr(self, sector, block):
+    def block_addr_1k_mifare(self, sector, block):
         """
-        Returns block address of spec. block in spec. sector.
+        Returns block address of spec. block in spec. sector, for 1K MIFARE tag.
         """
         return sector * 4 + block
 
-    def sector_string(self, block_address):
+    def page_addr_ntag213(self, page):
         """
-        Returns sector and it's block representation of block address, eg. S01B03 for sector trailer in second sector
+        Returns page number for NTAG213 - does nothing but make sure that
+        the page address is within user-addressable space
+        """
+        if page < 4 or page > 39:
+            if self.debug:
+                print ("Illegal page address for NTAG213: " + str(page))
+            return None
+
+        return page
+
+    def sector_string_1k_mifare(self, block_address):
+        """
+        Returns sector and it's block representation of block address, eg. S01B03 for sector trailer in second sector,
+        for 1K MIFARE tag.
         """
         return "S" + str((block_address - (block_address % 4)) / 4) + "B" + str(block_address % 4)
 
@@ -86,14 +99,14 @@ class RFIDUtil:
                 print ("Not calling card_auth - already authed")
             return False
 
-    def write_trailer(self, sector, key_a=(0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF), auth_bits=(0xFF, 0x07, 0x80), 
-                      user_data=0x69, key_b=(0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF)):
+    def write_trailer_1k_mifare(self, sector, key_a=(0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF), auth_bits=(0xFF, 0x07, 0x80), 
+                                user_data=0x69, key_b=(0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF)):
         """
-        Writes sector trailer of specified sector. Tag and auth must be set - does auth.
+        Writes sector trailer of specified sector. Tag and auth must be set - does auth, for 1K MIFARE tag.
         If value is None, value of byte is kept.
         Returns error state.
         """
-        addr = self.block_addr(sector, 3)
+        addr = self.block_addr_1k_mifare(sector, 3)
         return self.rewrite(addr, key_a[:6] + auth_bits[:3] + (user_data, ) + key_b[:6])
 
     def rewrite(self, block_address, new_bytes):
@@ -102,7 +115,7 @@ class RFIDUtil:
         Returns error state.
         """
         if not self.is_tag_set_auth():
-            return True
+            return False
 
         error = self.do_auth(block_address)
         if not error:
@@ -121,20 +134,31 @@ class RFIDUtil:
 
         return error
 
-    def read_out(self, block_address):
+    def print_out(self, block_address):
         """
         Prints sector/block number and contents of block. Tag and auth must be set - does auth.
         """
+        (error, data) = self.read_out(block_address)
+        if not error:
+            print (self.sector_string(block_address) + ": " + str(data))
+        else:
+            print ("Error on " + self.sector_string(block_address))
+ 
+    def read_out(self, block_address):
+        """
+        Read specified block from tag and return (error, data). Tag and auth must be set - does auth.
+        """
         if not self.is_tag_set_auth():
-            return True
+            return False
 
         error = self.do_auth(block_address)
         if not error:
             (error, data) = self.rfid.read(block_address)
-            print (self.sector_string(block_address) + ": " + str(data))
+            return (error, data)
         else:
-            print ("Error on " + self.sector_string(block_address))
+            return (error, "")
 
-    def dump(self, sectors=16):
+    def dump_1k_mifare(self, sectors=16):
         for i in range(sectors * 4):
             self.read_out(i)
+
