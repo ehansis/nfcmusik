@@ -74,6 +74,21 @@ class RFIDHandler(object):
         # music playing status
         self.current_music = None
 
+        # last played music file
+        self.previous_music = None
+
+        # must have seen stop signal N times to stop music - avoid
+        # stopping if signal drops out briefly
+        self.stop_music_on_stop_count = 3
+
+        # to replay same music file, must have seen at least N periods
+        # of no token - avoid replaying if token is left on device
+        # but signal drops out briefly
+        self.replay_on_stop_count = 3
+
+        # stop signal counter
+        self.stop_count = 0
+
     def poll_loop(self):
         """
         Poll for presence of tag, read data, until stop() is called.
@@ -254,23 +269,31 @@ class RFIDHandler(object):
             bin_data = "".join([chr(c) for c in self.data])
 
             if bin_data[0] == CONTROL_BYTES['MUSIC_FILE']:
+
                 if bin_data in self.music_files_dict:
                     file_name = self.music_files_dict[bin_data]
                     file_path = path.join(settings.MUSIC_ROOT, file_name)
 
                     if file_name != self.current_music:
 
-                        if path.exists(file_path):
+                        # only replay same music file if we saw at least N periods
+                        # of no token
+                        if path.exists(file_path) and (file_name != self.previous_music or self.stop_count >= self.replay_on_stop_count):
                             print "RFIDHandler action: Playing music file " + file_path
 
                             # play music file
                             self.current_music = file_name
+                            self.previous_music = file_name
                             pygame.mixer.music.load(file_path)
                             pygame.mixer.music.play()
 
                         else:
-                            if DEBUG:
+                            if DEBUG and not path.exists(file_path):
                                 print "RFIDHandler action: File not found " + file_path
+
+                    # token seen - reset stop counter
+                    self.stop_count = 0
+
                 else:
                     if DEBUG:
                         print "RFIDHandler: gut music file control byte but unknown file hash"
@@ -278,13 +301,17 @@ class RFIDHandler(object):
                 if DEBUG:
                     print "RFIDHandler action: Unknown control byte"
         else:
+            self.stop_count += 1
+
             if DEBUG:
-                print "Resetting action status"
+                print "Resetting action status, stop count " + str(self.stop_count)
 
-            self.current_music = None
+            # only stop after token absence for at least N times
+            if self.stop_count >= self.stop_music_on_stop_count:
+                self.current_music = None
 
-            if pygame.mixer.music.get_busy():
-                pygame.mixer.music.stop()
+                if pygame.mixer.music.get_busy():
+                    pygame.mixer.music.stop()
 
 
 #
