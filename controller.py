@@ -69,7 +69,7 @@ class RFIDHandler(object):
         self.page = 10
 
         # polling cycle time (seconds)
-        self.sleep = 1.0
+        self.sleep = 0.5
 
         # music playing status
         self.current_music = None
@@ -137,8 +137,8 @@ class RFIDHandler(object):
                 # act on data
                 self.action()
 
-                # wait a bit
-                time.sleep(self.sleep)
+            # wait a bit (this is in while loop, NOT in mutex env)
+            time.sleep(self.sleep)
 
     def write(self, data):
         """
