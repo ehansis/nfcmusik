@@ -8,6 +8,13 @@ That's all the user interface there is.
 
 ## Requirements
 
+### WLAN access point
+
+Configure the raspi to act as a WLAN access point on interface `wlan0`. 
+This interface is shut down 3 minutes after startup, to avoid unneccessary communication and
+interference in the speakers. Refreshing the home page of the interface web server resets
+the shutdown timer.
+
 ### Base OS
 
 Built and tested with Raspian Jessie (2016-05-27).
