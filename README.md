@@ -2,22 +2,51 @@
 
 **Goal:** build a simple mp3 player that is usable for toddlers, based on a raspberry pi.
 
-Music is started via placing an NFC token on a sensor.
+A song is started by placing an NFC token on a sensor. Removing the token stops the music.
 That's all the user interface there is.
 
+In my setup, the RasPi is hidden in a wooden box, that also contains a pair of tiny USB speakers.
+The NFC sensor is screwed to the inside of the lid. 
+As tokens I use plastic poker chips. Each token plays one specific song.
+On one side I stick an NFC tag, on the other I draw a little icon
+symbolizing the song to be played by this token.
 
-## Requirements
+The music box is configured via a web interface, in which you can assign a song to 
+a specific NFC tag. 
+
+
+## Shopping list
+
+Here's what I bought to build the player (no, I'm in no way affiliated with Amazon...):
+- [Neuftech Mifare RC522 RFC Reader](https://www.amazon.de/gp/product/B00QFDRPZY/ref=oh_aui_detailpage_o05_s00?ie=UTF8&psc=1)
+- [Trust Leto 2.0 USB Speakers] (https://www.amazon.de/gp/product/B00JRW0M32/ref=oh_aui_detailpage_o05_s01?ie=UTF8&psc=1)
+- [20 NFC Tags Sticker NTAG213 Circus round 22mm 168Byte] (https://www.amazon.de/gp/product/B00BTKAI7U/ref=oh_aui_detailpage_o05_s01?ie=UTF8&psc=1)
+- Some USB power supply, plus a USB extension cable
+- [Aukru 40x 20cm female-female jumper wire] (https://www.amazon.de/gp/product/B00OL6JZ3C/ref=oh_aui_detailpage_o05_s02?ie=UTF8&psc=1) to wire the RFC reader to the RasPi
+- [Raspberry Board Pi 3 Model B] (https://www.amazon.de/gp/product/B01CCOXV34/ref=oh_aui_detailpage_o07_s00?ie=UTF8&psc=1)
+- Some SD Card (16 GB)
+- Some RasPi Case
+- A wooden box, about the size of a shoe box, from a DIY store
+
+
+## RasPi Setup
 
 ### WLAN access point
 
 Configure the raspi to act as a WLAN access point on interface `wlan0`. 
-This interface is shut down 3 minutes after startup, to avoid unneccessary communication and
-interference in the speakers. Refreshing the home page of the interface web server resets
-the shutdown timer.
+See, for example, [this site] 
+(https://frillip.com/using-your-raspberry-pi-3-as-a-wifi-access-point-with-hostapd/) for instructions.
+Note the static IP that you assign to the RasPi while configuring. This will be the address where
+you can access the user interface (also see below).
+
+The `wlan0` interface is automatically shut down 3 minutes after startup, to avoid unneccessary 'radiation' and
+to reduce interference in the speakers. Refreshing the home page of the user interface resets
+the shutdown timer. After the access point has shut down, you would need to re-boot the RasPi to 
+reconnect (or connect to it via LAN).
 
 ### Base OS
 
-Built and tested with Raspian Jessie (2016-05-27).
+The code was built and tested with Raspian Jessie (2016-05-27).
 
 Enable the SPI interface using `sudo raspi-config`, then go to `Advanced Options` and enable SPI.
 
@@ -65,15 +94,24 @@ of which only the first 4 are actually written.
 *ToDo*: Fix `RFID.py` to correctly handle 4-byte writes..
 
 
-## Usage
+## NFC Reader
 
-Copy music files to RasPi SD Card, adapt `settings.py` to point to correct `MUSIC_ROOT`
-(this can be done via `scp` or by plugging the SD card into your PC/Mac).
+See [the pi-rc522 page](https://github.com/ondryaso/pi-rc522) for instructions on how to
+connect the NFC reader to your RasPi. The RasPi pinout can be found [here](http://pinout.xyz/).
 
-Clone into a directory of your choice on the RasPi. Run `controller.py` to start. 
+
+## Administration
+
+Copy mp3 files to the RasPi SD Card, adapt `settings.py` to point to the correct `MUSIC_ROOT`
+containing the mp3 files.
+Copying can be done via `scp` or by plugging the SD card into your PC/Mac.
+Music files contained in `MUSIC_ROOT` will be shown in the user interface and will
+be playable by NFC tags.
+
+Clone this git repo into a directory of your choice on the RasPi. Run `python controller.py` to start. 
 See comment in `controller.py` for how to autostart on reboot.
 
-Open http://<RasPi IP or host name>:5000 to access NFC tag management.
+Open `http://<RasPi IP or host name>:5000` to access NFC tag management.
 Place tag on reader, click 'write to tag' besides one of the listed music files
 to assign the file to the tag.
 
