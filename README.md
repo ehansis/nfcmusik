@@ -1,6 +1,6 @@
 # nfcmusik
 
-**Goal:** build a simple mp3 player that is usable for toddlers, based on a raspberry pi.
+**Goal:** build a simple mp3 player that a toddler can use, based on a raspberry pi.
 
 A song is started by placing an NFC token on a sensor. Removing the token stops the music.
 That's all the user interface there is.
@@ -11,8 +11,15 @@ As tokens I use plastic poker chips. Each token plays one specific song.
 On one side I stick an NFC tag, on the other I draw a little icon
 symbolizing the song to be played by this token.
 
+![Image of the player, box closed](images/nfcmusik_box_1.jpg)
+
+![Image of the player, box opened](images/nfcmusik_box_2.jpg)
+
+
 The music box is configured via a web interface, in which you can assign a song to 
 a specific NFC tag. 
+
+![Screenshot of the UI with an NFC tag present](images/nfcmusik_UI_2.png)
 
 
 ## Shopping list
