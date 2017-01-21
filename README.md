@@ -72,13 +72,11 @@ Install these with `pip install <package>`
 * flask
 
 
-## Integrated third-party code
+### SPI interface
 
-The **RFID interface** (`RFID.py`) is based on https://github.com/ondryaso/pi-rc522, commit 
-`6f5add08df29940bac15d3e9d98763fcc212ecc7`, with custom modifications.
-
-The **SPI interface** code (folder `SPI-Py`) was cloned from https://github.com/mab5vot9us9a/SPI-Py, 
-commit `3d537a7e40ae1a7035b147acf08a73c9e31027ea`, with no further modifications.
+Clone the SPI-Py project (https://github.com/mab5vot9us9a/SPI-Py) into a directory `SPI-Py`.
+Code is not included in this repo because SPI-Py is GPL (and I want my project license to be less restrictive).
+The project was built and tested with commit `3d537a7e40ae1a7035b147acf08a73c9e31027ea` of SPI-Py.
 
 Build the SPI interface driver as follows:
 ```
@@ -87,6 +85,12 @@ python setup.py build
 sudo python setup.py install
 rm -rv build
 ```
+
+
+## Integrated third-party code for RFID interface
+
+The **RFID interface** (`RFID.py`) is based on https://github.com/ondryaso/pi-rc522, commit 
+`6f5add08df29940bac15d3e9d98763fcc212ecc7`, with custom modifications.
 
 
 ## NFC Tags
