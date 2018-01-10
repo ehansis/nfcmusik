@@ -346,4 +346,5 @@ class RFID:
         if self.authed:
             self.stop_crypto()
         GPIO.cleanup()
+        SPI.closeSPI()
 
