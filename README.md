@@ -25,12 +25,12 @@ a specific NFC tag.
 ## Shopping list
 
 Here's what I bought to build the player (no, I'm in no way affiliated with Amazon...):
-- [Neuftech Mifare RC522 RFC Reader](https://www.amazon.de/gp/product/B00QFDRPZY/ref=oh_aui_detailpage_o05_s00?ie=UTF8&psc=1)
-- [Trust Leto 2.0 USB Speakers] (https://www.amazon.de/gp/product/B00JRW0M32/ref=oh_aui_detailpage_o05_s01?ie=UTF8&psc=1)
-- [20 NFC Tags Sticker NTAG213 Circus round 22mm 168Byte] (https://www.amazon.de/gp/product/B00BTKAI7U/ref=oh_aui_detailpage_o05_s01?ie=UTF8&psc=1)
+- [Neuftech Mifare RC522 RFC Reader](https://www.amazon.de/gp/product/B00QFDRPZY/)
+- [Trust Leto 2.0 USB Speakers](https://www.amazon.de/gp/product/B00JRW0M32/)
+- [20 NFC Tags Sticker NTAG213 Circus round 22mm 168Byte](https://www.amazon.de/gp/product/B00BTKAI7U/)
 - Some USB power supply, plus a USB extension cable
-- [Aukru 40x 20cm female-female jumper wire] (https://www.amazon.de/gp/product/B00OL6JZ3C/ref=oh_aui_detailpage_o05_s02?ie=UTF8&psc=1) to wire the RFC reader to the RasPi
-- [Raspberry Board Pi 3 Model B] (https://www.amazon.de/gp/product/B01CCOXV34/ref=oh_aui_detailpage_o07_s00?ie=UTF8&psc=1)
+- [Aukru 40x 20cm female-female jumper wire](https://www.amazon.de/gp/product/B00OL6JZ3C/) to wire the RFC reader to the RasPi
+- [Raspberry Board Pi 3 Model B](https://www.amazon.de/gp/product/B01CCOXV34/)
 - Some SD Card (16 GB)
 - Some RasPi Case
 - A wooden box, about the size of a shoe box, from a DIY store
@@ -41,8 +41,7 @@ Here's what I bought to build the player (no, I'm in no way affiliated with Amaz
 ### WLAN access point
 
 Configure the raspi to act as a WLAN access point on interface `wlan0`. 
-See, for example, [this site] 
-(https://frillip.com/using-your-raspberry-pi-3-as-a-wifi-access-point-with-hostapd/) for instructions.
+See, for example, [this site](https://frillip.com/using-your-raspberry-pi-3-as-a-wifi-access-point-with-hostapd/) for instructions.
 Note the static IP that you assign to the RasPi while configuring. This will be the address where
 you can access the user interface (also see below).
 
@@ -74,7 +73,7 @@ Install these with `pip install <package>`
 
 ### SPI interface
 
-Clone the SPI-Py project (https://github.com/mab5vot9us9a/SPI-Py) into a directory `SPI-Py`.
+Clone the [SPI-Py project](https://github.com/mab5vot9us9a/SPI-Py) into a directory `SPI-Py`.
 Code is not included in this repo because SPI-Py is GPL (and I want my project license to be less restrictive).
 The project was built and tested with commit `3d537a7e40ae1a7035b147acf08a73c9e31027ea` of SPI-Py.
 
@@ -89,8 +88,8 @@ rm -rv build
 
 ## Integrated third-party code for RFID interface
 
-The **RFID interface** (`RFID.py`) is based on https://github.com/ondryaso/pi-rc522, commit 
-`6f5add08df29940bac15d3e9d98763fcc212ecc7`, with custom modifications.
+The **RFID interface** (`RFID.py`) is based on [pi-rc522](https://github.com/ondryaso/pi-rc522), commit 
+[`6f5add08df29940bac15d3e9d98763fcc212ecc7`](https://github.com/ondryaso/pi-rc522/tree/6f5add08df29940bac15d3e9d98763fcc212ecc7), with custom modifications.
 
 
 ## NFC Tags
