@@ -1,7 +1,9 @@
+# coding=utf-8
+from typing import List
+
 import RPi.GPIO as GPIO
-import spi as SPI
-import signal
-import time
+import spidev
+
 
 class RFID:
     pin_rst = 22
@@ -31,44 +33,61 @@ class RFID:
     act_select = 0x93
     act_end = 0x50
 
-    reg_tx_control = 0x14
     length = 16
+
+    # See §9 of https://www.nxp.com/docs/en/data-sheet/MFRC522.pdf for an overview over and
+    # explanation of all registers.
+    CommandReg = 0x01
+    ComlEnReg = 0x02
+    FIFODataReg = 0x09
+    BitFramingReg = 0x0D
+    ModeReg = 0x11
+    TxControlReg = 0x14
+    TxAutoReg = 0x15
+    TModeReg = 0x2A
+    TPrescalerReg = 0x2B
+    TReloadRegH = 0x2C
+    TReloadRegL = 0x2D
 
     authed = False
 
-    def __init__(self, dev='/dev/spidev0.0', speed=1000000, pin_rst=22, pin_ce=0):
+    def __init__(self, bus=0, device=0, speed=1000000, pin_rst=22, pin_ce=0):
         self.pin_rst = pin_rst
         self.pin_ce = pin_ce
 
-        SPI.openSPI(device=dev, speed=speed)
+        self.spi = spidev.SpiDev()
+        self.spi.open(bus=bus, device=device)
+        self.spi.max_speed_hz = speed
+
         GPIO.setmode(GPIO.BOARD)
         GPIO.setup(pin_rst, GPIO.OUT)
         GPIO.output(pin_rst, 1)
         if pin_ce != 0:
             GPIO.setup(pin_ce, GPIO.OUT)
             GPIO.output(pin_ce, 1)
+
         self.reset()
-        self.dev_write(0x2A, 0x8D)
-        self.dev_write(0x2B, 0x3E)
-        self.dev_write(0x2D, 30)
-        self.dev_write(0x2C, 0)
-        self.dev_write(0x15, 0x40)
-        self.dev_write(0x11, 0x3D)
+        self.dev_write(self.TModeReg, 0x8D)
+        self.dev_write(self.TPrescalerReg, 0x3E)
+        self.dev_write(self.TReloadRegL, 30)
+        self.dev_write(self.TReloadRegH, 0)
+        self.dev_write(self.TxAutoReg, 0x40)
+        self.dev_write(self.ModeReg, 0x3D)
         self.set_antenna(True)
 
-    def spi_transfer(self, data):
+    def spi_transfer(self, address: int, *data: int) -> List[int]:
         if self.pin_ce != 0:
             GPIO.output(self.pin_ce, 0)
-        r = SPI.transfer(data)
+        ret = self.spi.xfer2([address] + list(data))
         if self.pin_ce != 0:
             GPIO.output(self.pin_ce, 1)
-        return r
+        return ret
 
     def dev_write(self, address, value):
-        self.spi_transfer(((address << 1) & 0x7E, value))
+        self.spi_transfer((address << 1) & 0x7E, value)
 
     def dev_read(self, address):
-        return self.spi_transfer((((address << 1) & 0x7E) | 0x80, 0))[1]
+        return self.spi_transfer(((address << 1) & 0x7E) | 0x80, 0)[1]
 
     def set_bitmask(self, address, mask):
         current = self.dev_read(address)
@@ -79,12 +98,12 @@ class RFID:
         self.dev_write(address, current & (~mask))
 
     def set_antenna(self, state):
-        if state == True:
-            current = self.dev_read(self.reg_tx_control)
+        if state:
+            current = self.dev_read(self.TxControlReg)
             if ~(current & 0x03):
-                self.set_bitmask(self.reg_tx_control, 0x03)
+                self.set_bitmask(self.TxControlReg, 0x03)
         else:
-            self.clear_bitmask(self.reg_tx_control, 0x03)
+            self.clear_bitmask(self.TxControlReg, 0x03)
 
     def card_write(self, command, data):
         back_data = []
@@ -92,8 +111,6 @@ class RFID:
         error = False
         irq = 0x00
         irq_wait = 0x00
-        last_bits = None
-        n = 0
 
         if command == self.mode_auth:
             irq = 0x12
@@ -102,15 +119,15 @@ class RFID:
             irq = 0x77
             irq_wait = 0x30
 
-        self.dev_write(0x02, irq | 0x80)
+        self.dev_write(self.ComlEnReg, irq | 0x80)
         self.clear_bitmask(0x04, 0x80)
         self.set_bitmask(0x0A, 0x80)
-        self.dev_write(0x01, self.mode_idle)
+        self.dev_write(self.CommandReg, self.mode_idle)
 
         for i in range(len(data)):
-            self.dev_write(0x09, data[i])
+            self.dev_write(self.FIFODataReg, data[i])
 
-        self.dev_write(0x01, command)
+        self.dev_write(self.CommandReg, command)
 
         if command == self.mode_transrec:
             self.set_bitmask(0x0D, 0x80)
@@ -147,40 +164,36 @@ class RFID:
                         n = self.length
 
                     for i in range(n):
-                        back_data.append(self.dev_read(0x09))
+                        back_data.append(self.dev_read(self.FIFODataReg))
             else:
                 print("E2")
                 error = True
 
-        return (error, back_data, back_length)
+        return error, back_data, back_length
 
     def request(self, req_mode=0x26):
         """
         Requests for tag.
         Returns (False, None) if no tag is present, otherwise returns (True, tag type)
         """
-        error = True
-        back_bits = 0
-
-        self.dev_write(0x0D, 0x07)
-        (error, back_data, back_bits) = self.card_write(self.mode_transrec, [req_mode, ])
+        self.dev_write(self.BitFramingReg, 0x07)
+        error, back_data, back_bits = self.card_write(self.mode_transrec, [req_mode, ])
 
         if error or (back_bits != 0x10):
-            return (True, None)
+            return True, None
 
-        return (False, back_bits)
+        return False, back_bits
 
     def anticoll(self):
         """
         Anti-collision detection.
         Returns tuple of (error state, tag ID).
         """
-        back_data = []
         serial_number = []
 
         serial_number_check = 0
-        
-        self.dev_write(0x0D, 0x00)
+
+        self.dev_write(self.BitFramingReg, 0x00)
         serial_number.append(self.act_anticl)
         serial_number.append(0x20)
 
@@ -194,16 +207,16 @@ class RFID:
                     error = True
             else:
                 error = True
-        
-        return (error, back_data)
+
+        return error, back_data
 
     def calculate_crc(self, data):
         self.clear_bitmask(0x05, 0x04)
         self.set_bitmask(0x0A, 0x80)
 
         for i in range(len(data)):
-            self.dev_write(0x09, data[i])
-        self.dev_write(0x01, self.mode_crc)
+            self.dev_write(self.FIFODataReg, data[i])
+        self.dev_write(self.CommandReg, self.mode_crc)
 
         i = 255
         while True:
@@ -212,9 +225,7 @@ class RFID:
             if not ((i != 0) and not (n & 0x04)):
                 break
 
-        ret_data = []
-        ret_data.append(self.dev_read(0x22))
-        ret_data.append(self.dev_read(0x21))
+        ret_data = [self.dev_read(0x22), self.dev_read(0x21)]
 
         return ret_data
 
@@ -224,14 +235,7 @@ class RFID:
         uid -- list or tuple with four bytes tag ID
         Returns error state.
         """
-        back_data = []
-        buf = []
-
-        buf.append(self.act_select)
-        buf.append(0x70)
-
-        for i in range(5):
-            buf.append(uid[i])
+        buf = [self.act_select, 0x70] + [uid[i] for i in range(5)]
 
         crc = self.calculate_crc(buf)
         buf.append(crc[0])
@@ -252,15 +256,7 @@ class RFID:
         uid -- list or tuple with four bytes tag ID
         Returns error state.
         """
-        buf = []
-        buf.append(auth_mode)
-        buf.append(block_address)
-
-        for i in range(len(key)):
-            buf.append(key[i])
-
-        for i in range(4):
-            buf.append(uid[i])
+        buf = [auth_mode, block_address] + [key[i] for i in range(len(key))] + [uid[i] for i in range(4)]
 
         (error, back_data, back_length) = self.card_write(self.mode_auth, buf)
         if not (self.dev_read(0x08) & 0x08) != 0:
@@ -277,13 +273,10 @@ class RFID:
         self.authed = False
 
     def halt(self):
-        """Swich state to HALT"""
+        """Switch state to HALT"""
 
-        buf = []
-        buf.append(self.act_end)
-        buf.append(0)
+        buf = [self.act_end, 0]
 
-        crc = self.calculate_crc(buf)
         self.clear_bitmask(0x08, 0x80)
         self.card_write(self.mode_transrec, buf)
         self.clear_bitmask(0x08, 0x08)
@@ -294,9 +287,7 @@ class RFID:
         Reads data from block. You should be authenticated before calling read.
         Returns tuple of (error state, read data).
         """
-        buf = []
-        buf.append(self.act_read)
-        buf.append(block_address)
+        buf = [self.act_read, block_address]
         crc = self.calculate_crc(buf)
         buf.append(crc[0])
         buf.append(crc[1])
@@ -305,39 +296,38 @@ class RFID:
         if len(back_data) != self.length:
             error = True
 
-        return (error, back_data)
-   
+        return error, back_data
+
     def write(self, block_address, data):
         """
         Writes data to block. You should be authenticated before calling write.
         Returns error state.
         """
-        buf = []
-        buf.append(self.act_write)
-        buf.append(block_address)
+        buf = [self.act_write, block_address]
         crc = self.calculate_crc(buf)
         buf.append(crc[0])
         buf.append(crc[1])
-        (error, back_data, back_length) = self.card_write(self.mode_transrec, buf)
-        if not(back_length == 4) or not((back_data[0] & 0x0F) == 0x0A):
+
+        error, back_data, back_length = self.card_write(self.mode_transrec, buf)
+        if back_length != 4 or (back_data[0] & 0x0F) != 0x0A:
             error = True
 
         if not error:
             buf_w = []
             for i in range(self.length):
                 buf_w.append(data[i])
-               
+
             crc = self.calculate_crc(buf_w)
             buf_w.append(crc[0])
             buf_w.append(crc[1])
             (error, back_data, back_length) = self.card_write(self.mode_transrec, buf_w)
-            if not(back_length == 4) or not((back_data[0] & 0x0F) == 0x0A):
+            if back_length != 4 or (back_data[0] & 0x0F) != 0x0A:
                 error = True
 
         return error
 
     def reset(self):
-        self.dev_write(0x01, self.mode_reset)
+        self.dev_write(self.CommandReg, self.mode_reset)
 
     def cleanup(self):
         """
@@ -346,5 +336,4 @@ class RFID:
         if self.authed:
             self.stop_crypto()
         GPIO.cleanup()
-        SPI.closeSPI()
-
+        self.spi.close()

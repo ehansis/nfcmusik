@@ -14,7 +14,7 @@ import datetime
 from flask import Flask, render_template, request
 
 import settings
-import RFID
+from RFID import RFID
 import util
 
 
@@ -122,9 +122,8 @@ class RFIDHandler(object):
                 self.uid[0] = None
                 self.data[0] = None
 
-                # always create a new RFID interface instance, to clear any errors from
-                # previous operations
-                rdr = RFID.RFID()
+                # always create a new RFID interface instance, to clear any errors from previous operations
+                rdr = RFID()
 
                 # check for presence of tag
                 err, _ = rdr.request()
