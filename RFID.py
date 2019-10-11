@@ -1,7 +1,6 @@
 import RPi.GPIO as GPIO
 import spi as SPI
-import signal
-import time
+
 
 class RFID:
     pin_rst = 22
@@ -129,7 +128,6 @@ class RFID:
                 error = False
 
                 if n & irq & 0x01:
-                    print("E1")
                     error = True
 
                 if command == self.mode_transrec:
@@ -149,7 +147,6 @@ class RFID:
                     for i in range(n):
                         back_data.append(self.dev_read(0x09))
             else:
-                print("E2")
                 error = True
 
         return (error, back_data, back_length)
