@@ -14,7 +14,7 @@ import datetime
 from flask import Flask, render_template, request
 
 import settings
-from RFID import RFID
+from rfid import RFID
 import util
 
 
