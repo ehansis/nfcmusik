@@ -52,9 +52,19 @@ reconnect (or connect to it via LAN).
 
 ### Base OS
 
-The code was built and tested with Raspian Jessie (2016-05-27).
-
+The code was built and tested with Raspbian Jessie (2016-05-27).
 Enable the SPI interface using `sudo raspi-config`, then go to `Advanced Options` and enable SPI.
+
+Alternatively, you can also flash a [hypriot image](https://blog.hypriot.com) (Raspbian Buster including a working installation of docker) by use of the [hypriot flash](https://github.com/hypriot/flash) utility.
+The configuration files used in this process are located under `setup/image`.
+To use it to flash an sd card, just run
+
+```
+make flash
+```
+
+and follow the prompts.
+No worries about enabling interfaces anymore. :)
 
 ### System packages
 

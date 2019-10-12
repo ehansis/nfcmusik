@@ -1,0 +1,18 @@
+#cloud-config
+# vim: syntax=yaml
+---
+hostname: nfcmusic
+locale: en_US.UTF-8
+manage_etc_hosts: true
+package_upgrade: false
+users:
+  - name: nfcmusic
+    gecos: nfcmusic service run user
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+    groups: users,docker,audio
+    plain_text_passwd: nfcmusic
+    lock_passwd: false
+    ssh_pwauth: true
+    chpasswd:
+      expire: false
