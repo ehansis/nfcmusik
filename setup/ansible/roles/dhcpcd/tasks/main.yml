@@ -1,0 +1,9 @@
+---
+- name: Configure dhcpcd
+  template:
+    src: dhcpcd.conf.j2
+    dest: /etc/dhcpcd.conf
+    owner: root
+    mode: 0664
+  notify:
+    - dhcp-restart

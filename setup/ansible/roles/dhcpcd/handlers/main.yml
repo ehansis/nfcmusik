@@ -1,0 +1,5 @@
+---
+- name: dhcp-restart
+  service:
+    name: dhcpcd
+    state: restarted

@@ -1,0 +1,28 @@
+---
+- hosts: all
+  become: yes
+
+  vars:
+    ap_cidr: 10.100.0.1/24
+    ap_ssid: nfcmusic
+    ap_channel: 7
+
+  vars_prompt:
+    - name: ap_password
+      prompt: Choose a password for the access point's WIFI
+      private: yes
+
+  tasks:
+    - name: Install some base packages
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: yes
+      with_items:
+        - vim
+
+  roles:
+    - dhcpcd
+    - hostapd
+    - systemd-resolved
+    - rpi-if-spi

@@ -1,0 +1,9 @@
+---
+- name: Configure systemd-resolved
+  template:
+    src: pi-ap.network.j2
+    dest: /etc/systemd/network/pi-ap.network
+    owner: root
+    mode: 0644
+  notify:
+    - systemd-resolved-restart

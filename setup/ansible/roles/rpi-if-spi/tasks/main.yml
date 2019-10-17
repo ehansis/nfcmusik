@@ -1,0 +1,14 @@
+---
+- name: Enable SPI interface on the RPi
+  lineinfile:
+    path: /boot/config.txt
+    regexp: "^#?dtparam=spi"
+    line: dtparam=spi=on
+
+- name: Install python bindings for SPI
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - python3-dev
+    - python3-spidev
