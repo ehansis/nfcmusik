@@ -124,3 +124,5 @@ ENV/
 *.su
 
 .vagrant
+build
+!build/.gitkeep

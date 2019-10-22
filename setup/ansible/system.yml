@@ -12,7 +12,7 @@
       prompt: Choose a password for the access point's WIFI
       private: yes
 
-  tasks:
+  pre_tasks:
     - name: Install some base packages
       apt:
         name: "{{ item }}"
