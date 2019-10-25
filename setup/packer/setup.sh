@@ -22,11 +22,15 @@ function build_packer_arm_builder_plugin() {
   local src_dir="${GOPATH}/src/github.com/solo-io/packer-builder-arm-image"
   mkdir -p "$(dirname "${src_dir}")"
 
-  git clone https://github.com/solo-io/packer-builder-arm-image.git "${src_dir}"
+  if [[ ! -d "${src_dir}" ]] ; then
+    git clone https://github.com/solo-io/packer-builder-arm-image.git "${src_dir}"
+  fi
   pushd "${src_dir}"
 
   # NOTE Temporary fix; can be removed one the branch's accompanying PR is reviewd and merged
-  git remote add fork https://github.com/croesnick/packer-builder-arm-image.git
+  if ! git ls-remote --exit-code fork &> /dev/null ; then
+    git remote add fork https://github.com/croesnick/packer-builder-arm-image.git
+  fi
   git pull fork feature/param-mount_path
 
   go build
@@ -46,7 +50,8 @@ function build_rpi_image() {
 }
 
 sudo apt-get update -qq
-sudo apt-get -y install \
+sudo apt-get -q -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" dist-upgrade
+sudo apt-get -q -y install \
   curl \
   gcc \
   git \

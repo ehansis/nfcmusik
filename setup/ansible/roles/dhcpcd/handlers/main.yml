@@ -1,4 +1,9 @@
 ---
+- name: dhcpcd-enable
+  service:
+    name: dhcpcd
+    enabled: yes
+
 - name: dhcp-restart
   service:
     name: dhcpcd

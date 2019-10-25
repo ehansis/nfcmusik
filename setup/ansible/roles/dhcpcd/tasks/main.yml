@@ -1,4 +1,9 @@
 ---
+- name: Install dhcpcd
+  apt:
+    name: dhcpcd
+    state: present
+
 - name: Configure dhcpcd
   template:
     src: dhcpcd.conf.j2

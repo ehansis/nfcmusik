@@ -1,6 +1,14 @@
-IMAGE = https\://github\.com/hypriot/image-builder-rpi/releases/download/v1\.11\.1/hypriotos-rpi-v1\.11\.1\.img\.zip
+IMAGE = build/nfcmusik-rpi-arm\.img
 
-.PHONY: flash
+.PHONY: flash build-image clean
 
-flash:
-	flash --userdata setup/image/config.yml --bootconf setup/image/boot.txt $(IMAGE)
+flash :
+	flash --config setup/image/config.yml $(IMAGE)
+
+build-image :
+	vagrant up --provision
+	vagrant halt
+
+clean :
+	vagrant destroy --force
+	rm -f ${IMAGE}

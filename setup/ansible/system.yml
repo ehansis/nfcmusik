@@ -4,7 +4,7 @@
 
   vars:
     ap_cidr: 10.100.0.1/24
-    ap_ssid: nfcmusic
+    ap_ssid: nfcmusik
     ap_channel: 7
 
   vars_prompt:
@@ -13,13 +13,14 @@
       private: yes
 
   pre_tasks:
+    - name: Install python-apt
+      raw: apt -y update && apt install -y python-minimal python-apt python-setuptools
     - name: Install some base packages
       apt:
-        name: "{{ item }}"
+        name:
+          - vim
         state: present
         update_cache: yes
-      with_items:
-        - vim
 
   roles:
     - dhcpcd

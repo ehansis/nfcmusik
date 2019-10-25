@@ -6,4 +6,5 @@
     owner: root
     mode: 0644
   notify:
+    - networking-restart
     - systemd-resolved-restart
