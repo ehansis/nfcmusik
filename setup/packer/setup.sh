@@ -50,7 +50,6 @@ function build_rpi_image() {
 }
 
 sudo apt-get update -qq
-sudo apt-get -q -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" dist-upgrade
 sudo apt-get -q -y install \
   curl \
   gcc \

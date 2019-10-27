@@ -6,11 +6,7 @@
     ap_cidr: 10.100.0.1/24
     ap_ssid: nfcmusik
     ap_channel: 7
-
-  vars_prompt:
-    - name: ap_password
-      prompt: Choose a password for the access point's WIFI
-      private: yes
+    ap_password: nfcmusik
 
   pre_tasks:
     - name: Install python-apt
@@ -23,7 +19,6 @@
         update_cache: yes
 
   roles:
-    - dhcpcd
     - hostapd
     - systemd-resolved
     - rpi-if-spi

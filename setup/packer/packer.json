@@ -6,9 +6,10 @@
     {
       "type": "arm-image",
       "image_type": "raspberrypi",
-      "iso_url": "https://downloads.raspberrypi.org/raspbian_lite/images/raspbian_lite-2019-09-30/2019-09-26-raspbian-buster-lite.zip",
+      "iso_url": "https://github.com/hypriot/image-builder-rpi/releases/download/v1.11.3/hypriotos-rpi-v1.11.3.img.zip",
       "iso_checksum_type": "sha256",
-      "iso_checksum": "a50237c2f718bd8d806b96df5b9d2174ce8b789eda1f03434ed2213bbca6c6ff",
+      "iso_checksum": "ad0d32bd369d7cf4f075dbb63d3b41c11dcf43169dad470fe0feab8ff9122590",
+      "last_partition_extra_size" : 1073741824,
       "mount_path": "{{ user `img_mount_path` }}"
     }
   ],
@@ -16,7 +17,7 @@
     {
       "type": "shell-local",
       "inline": [
-        "sudo -E ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 ANSIBLE_LOCAL_TEMP=/tmp/ansible ANSIBLE_REMOTE_TEMP=/tmp/ansible-managed ANSIBLE_ROLES_PATH=/nfcmusik/setup/ansible/roles ansible-playbook --extra-vars \"packer_build_name={{build_name}} packer_builder_type={{build_type}}\" -i '{{ user `img_mount_path` }}', --diff --connection chroot /nfcmusik/setup/ansible/system.yml"
+        "sudo -E ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 ANSIBLE_LOCAL_TEMP=/tmp/ansible ANSIBLE_REMOTE_TEMP=/tmp/ansible-managed ANSIBLE_ROLES_PATH=/nfcmusik/setup/ansible/roles ansible-playbook --extra-vars \"packer_build_name={{build_name}} packer_builder_type={{build_type}}\" -i '{{ user `img_mount_path` }}', --diff --connection chroot /nfcmusik/setup/ansible/nfcmusik.yml"
       ]
     }
   ]

@@ -4,6 +4,12 @@
     name: hostapd
     state: present
 
+- name: Unmask and enable hostapd service
+  systemd:
+    name: hostapd
+    masked: no
+    enabled: yes
+
 - name: Configure hostapd
   template:
     src: hostapd.conf.j2
@@ -11,11 +17,7 @@
     owner: root
     mode: 0664
   notify:
-    - hostapd-enable
     - hostapd-restart
-
-- name: Unmask hostapd service
-  command: systemctl unmask hostapd
 
 - name: hostapd defaults
   lineinfile:

@@ -1,9 +1,4 @@
 ---
-- name: hostapd-enable
-  service:
-    name: hostapd
-    enabled: yes
-
 - name: hostapd-restart
   service:
     name: hostapd

@@ -1,5 +1,6 @@
 #cloud-config
 # vim: syntax=yaml
+#
 hostname: nfcmusik
 locale: en_US.UTF-8
 manage_etc_hosts: true
@@ -9,6 +10,6 @@ users:
     gecos: nfcmusik service run user
     sudo: ALL=(ALL) NOPASSWD:ALL
     shell: /bin/bash
-    groups: users,docker,audio
+    groups: users,audio,video,plugdev,netdev,input,gpio,spi
     plain_text_passwd: nfcmusik
-    lock_passwd: true
+    lock_passwd: false

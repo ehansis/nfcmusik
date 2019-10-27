@@ -1,10 +1,11 @@
 [Match]
-Name=wlan0*
+Name=wlan0
 
 [Network]
 DHCPServer=yes
 Address={{ ap_cidr }}
 
 [DHCPServer]
+EmitDNS=yes
 PoolOffset=0
 PoolSize=4
