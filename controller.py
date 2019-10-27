@@ -1,22 +1,20 @@
-import glob
-from os import path
-import json
-import hashlib
 import binascii
-import signal
-import sys
+import datetime
+import glob
+import hashlib
+import json
+import os
+import subprocess
 import time
 from multiprocessing import Process, Lock, Manager
-import pygame
-import subprocess
-import datetime
+from os import path
 
+import pygame
 from flask import Flask, render_template, request
 
 import settings
-from rfid import RFID
 import util
-
+from rfid import RFID
 
 """
 
@@ -30,14 +28,10 @@ Autostart: 'crontab -e', then add line
 
 """
 
-
-
-
 # control bytes for NFC payload
 CONTROL_BYTES = dict(
     MUSIC_FILE='\x11',
 )
-
 
 # global debug output flag
 DEBUG = False
@@ -355,14 +349,11 @@ class RFIDHandler(object):
 
 app = Flask(__name__)
 
-
 # global dictionary of music file hashes and names
 music_files_dict = dict()
 
-
 # global RFID handler instance
 rfid_handler = RFIDHandler()
-
 
 # RFID handling process
 rfid_polling_process = Process(target=rfid_handler.poll_loop)
@@ -485,7 +476,6 @@ def home():
 
 
 if __name__ == "__main__":
-
     # start RFID polling
     rfid_polling_process.start()
 
@@ -494,5 +484,5 @@ if __name__ == "__main__":
 
     # run server
     app.run(host=settings.SERVER_HOST_MASK,
+            port=settings.SERVER_PORT,
             threaded=True)
-

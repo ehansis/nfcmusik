@@ -9,6 +9,11 @@
     ap_password: nfcmusik
 
   pre_tasks:
+    - name: "Workaround for error: 'ld.so: object '/usr/lib/arm-linux-gnueabihf/libarmmem-${PLATFORM}.so' from /etc/ld.so.preload cannot be preloaded"
+      lineinfile:
+        path: /etc/ld.so.preload
+        regexp: '/usr/lib/arm-linux-gnueabihf/libarmmem.*\.so'
+        state: absent
     - name: Install python-apt
       raw: apt -y update && apt install -y python-minimal python-apt python-setuptools
     - name: Install some base packages

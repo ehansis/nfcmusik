@@ -1,3 +1,6 @@
-SERVER_HOST_MASK = "0.0.0.0"
-MUSIC_ROOT="/home/pi/Music"
-DEFAULT_VOLUME=70
+import os
+
+SERVER_HOST_MASK = os.environ.get('NFCMUSIK_SERVER_HOST', default='0.0.0.0')
+SERVER_PORT = os.environ.get('NFCMUSIK_SERVER_PORT', 5000)
+MUSIC_ROOT = os.environ.get('NFCMUSIK_AUDIO_FILE_ROOT', '~/music')
+DEFAULT_VOLUME = os.environ.get('NFCMUSIK_AUDIO_VOLUME', 70)
