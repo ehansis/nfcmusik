@@ -12,3 +12,16 @@
           - python3-dev
           - python3-pip
         state: present
+
+    - name: Get commit hash of local's HEAD commmit
+      command: git rev-parse HEAD
+      become: no
+      args:
+        chdir: "{{ playbook_dir }}/../.."
+      delegate_to: localhost
+      register: _git_local_head_sha
+
+    - name: Install nfcmusik from the repository
+      pip:
+        name: "git+http://github.com/croesnick/nfcmusik.git@{{ _git_local_head_sha }}"
+        executable: pip3

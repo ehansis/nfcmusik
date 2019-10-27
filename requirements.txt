@@ -1,0 +1,10 @@
+-i https://pypi.python.org/simple
+click==7.0
+flask==1.1.1
+itsdangerous==1.1.0
+jinja2==2.10.3
+markupsafe==1.1.1
+pygame==1.9.6
+rpi.gpio==0.7.0
+spidev==3.4
+werkzeug==0.16.0
