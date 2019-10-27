@@ -23,6 +23,7 @@ a specific NFC tag.
 ## Shopping list
 
 Here's what I bought to build the player (no, I'm in no way affiliated with Amazon...):
+
 - [Neuftech Mifare RC522 RFC Reader](https://www.amazon.de/gp/product/B00QFDRPZY/)
 - [Trust Leto 2.0 USB Speakers](https://www.amazon.de/gp/product/B00JRW0M32/)
 - [20 NFC Tags Sticker NTAG213 Circus round 22mm 168Byte](https://www.amazon.de/gp/product/B00BTKAI7U/)
@@ -35,11 +36,14 @@ Here's what I bought to build the player (no, I'm in no way affiliated with Amaz
 
 ## Raspberry Pi Setup
 
-There are three ways documented below to provision your RPi and get the _nfcmusik_ service running:
+There are three ways documented below to provision your RPi:
 
-- Fully-automatic build which generates you a Rasbian-based image with everything installed and configured;
+- Fully-automatic build which generates a Rasbian-alike image with system packages installed and the RPi configured as a WIFI access point;
 - Semi-automatic build, in case you already have a Pi running and just want to get the requirements installed properly on your Pi;
-- Manual setup which gives you the bits necessary to configure your Pi and install the _nfcmusik_ service.
+- Manual setup which gives you the bits necessary to configure your RPi.
+
+What is left afterwards, though, is the setup of the _nfcmusik_ service itself.
+See the section on the _Software Setup_ for this purpose. 
 
 ### Fully-Automatic Build (Vagrant + Virtualbox)
 
@@ -63,7 +67,7 @@ In order to make this work, you need to have the following tools installed:
 ### Semi-Automatic Build (Ansible)
 
 Suitable if you already have a Raspberry Pi running and accessible over ssh from within your network.
-It utilizes Ansible to configure your Pi as a Wifi Access Point, configures DHCP, ensures the SPI (serial-parallel interface) is enabled, and installs _nfcmusik_ as a service:
+It utilizes Ansible to configure your Pi as a Wifi Access Point, configures DHCP, and ensures the SPI (serial-parallel interface) is enabled:
 
 ```
 ansible-playbook setup/ansible/nfcmusik.yml --inventory <rpi-ip>, --diff -e ansible_user=<rpi-user> --ask-pass 
@@ -120,6 +124,10 @@ Install these via `sudo apt-get install <package>`, after doing `sudo apt-get up
 Optional:
 * vim
 * ipython
+
+## Software setup
+
+After the build you still need to setup the _nfcmusik_ service.
 
 ### Python packages
 
