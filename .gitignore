@@ -123,3 +123,6 @@ ENV/
 *.dSYM/
 *.su
 
+.vagrant
+build
+!build/.gitkeep

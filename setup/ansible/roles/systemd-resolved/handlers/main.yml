@@ -1,0 +1,12 @@
+---
+- name: systemd-networkd-restart
+  systemd:
+    name: systemd-networkd
+    state: restarted
+    daemon_reload: yes
+
+- name: systemd-resolved-restart
+  systemd:
+    name: systemd-resolved
+    state: restarted
+    daemon_reload: yes

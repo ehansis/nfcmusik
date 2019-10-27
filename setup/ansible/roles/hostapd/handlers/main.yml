@@ -1,0 +1,5 @@
+---
+- name: hostapd-restart
+  service:
+    name: hostapd
+    state: restarted

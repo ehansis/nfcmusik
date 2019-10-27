@@ -1,0 +1,28 @@
+---
+- name: Install hostapd
+  apt:
+    name: hostapd
+    state: present
+
+- name: Unmask and enable hostapd service
+  systemd:
+    name: hostapd
+    masked: no
+    enabled: yes
+
+- name: Configure hostapd
+  template:
+    src: hostapd.conf.j2
+    dest: /etc/hostapd/hostapd.conf
+    owner: root
+    mode: 0664
+  notify:
+    - hostapd-restart
+
+- name: hostapd defaults
+  lineinfile:
+    path: /etc/default/hostapd
+    regexp: "^#?DAEMON_CONF=.+"
+    line: 'DAEMON_CONF="/etc/hostapd/hostapd.conf"'
+  notify:
+    - hostapd-restart

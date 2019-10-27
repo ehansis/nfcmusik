@@ -15,16 +15,15 @@ symbolizing the song to be played by this token.
 
 ![Image of the player, box opened](images/nfcmusik_box_2.jpg)
 
-
 The music box is configured via a web interface, in which you can assign a song to 
 a specific NFC tag. 
 
 ![Screenshot of the UI with an NFC tag present](images/nfcmusik_UI_2.png)
 
-
 ## Shopping list
 
 Here's what I bought to build the player (no, I'm in no way affiliated with Amazon...):
+
 - [Neuftech Mifare RC522 RFC Reader](https://www.amazon.de/gp/product/B00QFDRPZY/)
 - [Trust Leto 2.0 USB Speakers](https://www.amazon.de/gp/product/B00JRW0M32/)
 - [20 NFC Tags Sticker NTAG213 Circus round 22mm 168Byte](https://www.amazon.de/gp/product/B00BTKAI7U/)
@@ -35,12 +34,63 @@ Here's what I bought to build the player (no, I'm in no way affiliated with Amaz
 - Some RasPi Case
 - A wooden box, about the size of a shoe box, from a DIY store
 
+## Raspberry Pi Setup
 
-## RasPi Setup
+There are three ways documented below to provision your RPi:
 
-### WLAN access point
+- Fully-automatic build which generates a Rasbian-alike image with system packages installed and the RPi configured as a WIFI access point;
+- Semi-automatic build, in case you already have a Pi running and just want to get the requirements installed properly on your Pi;
+- Manual setup which gives you the bits necessary to configure your RPi.
 
-Configure the raspi to act as a WLAN access point on interface `wlan0`. 
+What is left afterwards, though, is the setup of the _nfcmusik_ service itself.
+See the section on the _Software Setup_ for this purpose. 
+
+### Fully-Automatic Build (Vagrant + Virtualbox)
+
+Recommended way of building _nfcmusik_ is to use the `build-image` make target.
+
+```
+make build-image
+```
+
+This target produces `build/nfcmusik-rpi-arm.img`, ready to be flashed onto an SD card via
+
+```
+make flash
+```
+
+In order to make this work, you need to have the following tools installed:
+
+- [Vagrant](https://www.vagrantup.com) in a recent version (tested with 2.2.5)
+- [Virtualbox](https://www.virtualbox.org) in a recent version (tested with 6.0.12)
+
+### Semi-Automatic Build (Ansible)
+
+Suitable if you already have a Raspberry Pi running and accessible over ssh from within your network.
+It utilizes Ansible to configure your Pi as a Wifi Access Point, configures DHCP, and ensures the SPI (serial-parallel interface) is enabled:
+
+```
+ansible-playbook setup/ansible/nfcmusik.yml --inventory <rpi-ip>, --diff -e ansible_user=<rpi-user> --ask-pass 
+```
+
+in case you authenticate via username/password (btw: yes, the *comma* is indeed intended and even required), or
+
+```
+ansible-playbook setup/ansible/nfcmusik.yml --inventory <rpi-ip>, --diff
+```
+
+in case of ssh-key-based authentication.
+
+In order to make this work, you need to have the following tools installed:
+
+- Python 3 (tested with Python 3.7)
+- [Ansible](https://www.ansible.com) (tested with Ansible 2.8)
+
+### Manual Setup
+
+### Wifi Access Point
+
+Configure the RPi to act as a WLAN access point on interface `wlan0`. 
 See, for example, [this site](https://frillip.com/using-your-raspberry-pi-3-as-a-wifi-access-point-with-hostapd/) for instructions.
 Note the static IP that you assign to the RasPi while configuring. This will be the address where
 you can access the user interface (also see below).
@@ -75,11 +125,14 @@ Optional:
 * vim
 * ipython
 
+## Software setup
+
+After the build you still need to setup the _nfcmusik_ service.
+
 ### Python packages
 
 Install these with `pip install <package>`
 * flask
-
 
 ### SPI interface
 
@@ -95,12 +148,10 @@ sudo python setup.py install
 rm -rv build
 ```
 
-
 ## Integrated third-party code for RFID interface
 
 The **RFID interface** (`RFID.py`) is based on [pi-rc522](https://github.com/ondryaso/pi-rc522), commit 
 [`6f5add08df29940bac15d3e9d98763fcc212ecc7`](https://github.com/ondryaso/pi-rc522/tree/6f5add08df29940bac15d3e9d98763fcc212ecc7), with custom modifications.
-
 
 ## NFC Tags
 
@@ -113,12 +164,10 @@ of which only the first 4 are actually written.
 
 *ToDo*: Fix `RFID.py` to correctly handle 4-byte writes..
 
-
 ## NFC Reader
 
 See [the pi-rc522 page](https://github.com/ondryaso/pi-rc522) for instructions on how to
 connect the NFC reader to your RasPi. The RasPi pinout can be found [here](http://pinout.xyz/).
-
 
 ## Administration
 
@@ -134,5 +183,3 @@ See comment in `controller.py` for how to autostart on reboot.
 Open `http://<RasPi IP or host name>:5000` to access NFC tag management.
 Place tag on reader, click 'write to tag' besides one of the listed music files
 to assign the file to the tag.
-
-

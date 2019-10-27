@@ -1,0 +1,3 @@
+---
+- import_playbook: system.yml
+- import_playbook: app.yml
