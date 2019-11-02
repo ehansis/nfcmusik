@@ -203,7 +203,7 @@ class RFIDHandler(object):
                         err |= rdr.write(page, page_data)
 
                         if err:
-                            logger.debug("Error signaled on writing page {:d} with data {:s}".format(page, str(page_data)))
+                            logger.debug(f'Error signaled on writing page {page:d} with data {page_data:s}')
 
                     if not err:
                         logger.debug("RFIDHandler write: successfully wrote tag data")
@@ -227,7 +227,7 @@ class RFIDHandler(object):
         """
         with self.mutex:
             data = list(self.data)
-        if data[0] != None:
+        if data[0] is not None:
             return "".join([chr(c) for c in data])
         else:
             return None
@@ -238,7 +238,7 @@ class RFIDHandler(object):
         """
         with self.mutex:
             uid = list(self.uid)
-        if uid[0] != None:
+        if uid[0] is not None:
             return "".join([chr(c) for c in uid])
         else:
             return None

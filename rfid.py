@@ -4,6 +4,7 @@ from typing import List
 import RPi.GPIO as GPIO
 import spidev
 
+
 class RFID:
     pin_rst = 22
     pin_ce = 0
