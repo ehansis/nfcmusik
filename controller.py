@@ -10,7 +10,7 @@ from multiprocessing import Process, Lock, Manager
 from os import path
 
 import pygame
-from RFID import RFID
+from rfid import RFID
 from flask import Flask, render_template, request
 
 import settings
