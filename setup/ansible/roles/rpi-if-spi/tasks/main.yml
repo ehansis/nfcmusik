@@ -4,6 +4,8 @@
     path: /boot/config.txt
     regexp: "^#?dtparam=spi"
     line: dtparam=spi=on
+  notify:
+    - system-reboot
 
 - name: Install python bindings for SPI
   apt:

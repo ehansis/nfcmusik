@@ -10,9 +10,9 @@ from multiprocessing import Process, Lock, Manager
 from os import path
 
 import pygame
+from rfid import RFID
 from flask import Flask, render_template, request
 
-from RFID import RFID
 import settings
 import util
 
@@ -118,8 +118,7 @@ class RFIDHandler(object):
                 self.uid[0] = None
                 self.data[0] = None
 
-                # always create a new RFID interface instance, to clear any errors from
-                # previous operations
+                # always create a new RFID interface instance, to clear any errors from previous operations
                 rdr = RFID()
 
                 # check for presence of tag
@@ -204,7 +203,7 @@ class RFIDHandler(object):
                         err |= rdr.write(page, page_data)
 
                         if err:
-                            logger.debug("Error signaled on writing page {:d} with data {:s}".format(page, str(page_data)))
+                            logger.debug(f'Error signaled on writing page {page:d} with data {page_data:s}')
 
                     if not err:
                         logger.debug("RFIDHandler write: successfully wrote tag data")
@@ -228,7 +227,7 @@ class RFIDHandler(object):
         """
         with self.mutex:
             data = list(self.data)
-        if data[0] != None:
+        if data[0] is not None:
             return "".join([chr(c) for c in data])
         else:
             return None
@@ -239,7 +238,7 @@ class RFIDHandler(object):
         """
         with self.mutex:
             uid = list(self.uid)
-        if uid[0] != None:
+        if uid[0] is not None:
             return "".join([chr(c) for c in uid])
         else:
             return None
@@ -474,4 +473,5 @@ if __name__ == "__main__":
 
     # run server
     app.run(host=settings.SERVER_HOST_MASK,
+            port=settings.SERVER_PORT,
             threaded=True)

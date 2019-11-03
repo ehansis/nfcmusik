@@ -41,7 +41,7 @@ function build_packer_arm_builder_plugin() {
 
 function build_rpi_image() {
   PACKER_LOG_FILE=$(mktemp)
-  sudo PACKER_LOG=1 packer build "${PACKERFILE}" | tee "${PACKER_LOG_FILE}"
+  sudo PACKER_LOG=1 packer build -debug -timestamp-ui -force "${PACKERFILE}" | tee "${PACKER_LOG_FILE}"
 
   BUILD_NAME=$(grep -Po "(?<=Build ').*(?=' finished.)" "${PACKER_LOG_FILE}")
   IMAGE_PATH=$(grep -Po "(?<=--> ${BUILD_NAME}: ).*" "${PACKER_LOG_FILE}")
@@ -61,7 +61,7 @@ sudo apt-get -q -y install \
   qemu-user-static \
   unzip
 
-sudo pip3 install --system ansible
+sudo pip3 install --system ansible pipenv
 go get -u github.com/golang/dep/cmd/dep
 
 install_packer '1.3.5'

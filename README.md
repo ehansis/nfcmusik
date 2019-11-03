@@ -131,43 +131,45 @@ After the build you still need to setup the _nfcmusik_ service.
 
 ### Python packages
 
-Install these with `pip install <package>`
-* flask
+The easiest way to get all the packages you need is to use [pipenv](https://pipenv.readthedocs.io/en/latest/).
+If not already installed on your system, you can get it via
 
-### SPI interface
-
-Clone the [SPI-Py project](https://github.com/mab5vot9us9a/SPI-Py) into a directory `SPI-Py`.
-Code is not included in this repo because SPI-Py is GPL (and I want my project license to be less restrictive).
-The project was built and tested with commit `3d537a7e40ae1a7035b147acf08a73c9e31027ea` of SPI-Py.
-
-Build the SPI interface driver as follows:
 ```
-cd SPI-Py
-python setup.py build
-sudo python setup.py install
-rm -rv build
+pip install pipenv
+```
+
+Once installed, you can get all the project's required packages nicely installed in a virtual env by executing the following command:
+
+```
+pipenv install --three
+``` 
+
+Finally, get into the virtual env via
+
+```
+pipenv shell
 ```
 
 ## Integrated third-party code for RFID interface
 
-The **RFID interface** (`RFID.py`) is based on [pi-rc522](https://github.com/ondryaso/pi-rc522), commit 
+The **RFID interface** (`rfid.py`) is based on [pi-rc522](https://github.com/ondryaso/pi-rc522), commit 
 [`6f5add08df29940bac15d3e9d98763fcc212ecc7`](https://github.com/ondryaso/pi-rc522/tree/6f5add08df29940bac15d3e9d98763fcc212ecc7), with custom modifications.
 
 ## NFC Tags
 
 This project was built and tested with NXP NTAG213 tags. Contrary to the examples
-and default usage in `RFID.py`, these do NOT require authentication
+and default usage in `rfid.py`, these do NOT require authentication
 to be read or written. They also use 4-byte pages instead of 16-byte ones.
 `read`s return 4 pages (16 bytes) at a time, but writes write 4 bytes only.
-`RFID.py` can read 16 bytes fine, writes must happen with 16 bytes of data
+`rfid.py` can read 16 bytes fine, writes must happen with 16 bytes of data
 of which only the first 4 are actually written.
 
-*ToDo*: Fix `RFID.py` to correctly handle 4-byte writes..
+*ToDo*: Fix `rfid.py` to correctly handle 4-byte writes..
 
 ## NFC Reader
 
-See [the pi-rc522 page](https://github.com/ondryaso/pi-rc522) for instructions on how to
-connect the NFC reader to your RasPi. The RasPi pinout can be found [here](http://pinout.xyz/).
+See [the pi-rc522 page](https://github.com/ondryaso/pi-rc522) for instructions on how to connect the NFC reader to your RasPi.
+The RasPi pinout can be found [here](http://pinout.xyz/).
 
 ## Administration
 

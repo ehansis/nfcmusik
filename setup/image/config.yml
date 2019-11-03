@@ -6,8 +6,8 @@ locale: en_US.UTF-8
 manage_etc_hosts: true
 package_upgrade: false
 users:
-  - name: nfcmusik
-    gecos: nfcmusik service run user
+  - name: nfcmusik-adm
+    gecos: nfcmusik management user
     sudo: ALL=(ALL) NOPASSWD:ALL
     shell: /bin/bash
     groups: users,audio,video,plugdev,netdev,input,gpio,spi
