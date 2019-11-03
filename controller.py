@@ -10,11 +10,11 @@ from multiprocessing import Process, Lock, Manager
 from os import path
 
 import pygame
-from rfid import RFID
 from flask import Flask, render_template, request
 
 import settings
 import util
+from rfid import RFID
 
 logger = logging.getLogger(__name__)
 

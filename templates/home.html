@@ -1,44 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+<head>
     <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta content="IE=edge" http-equiv="X-UA-Compatible">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
 
     <title>nfcmusik</title>
 
-    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='bootstrap-3.3.7-dist/css/bootstrap-theme.min.css') }}">
-    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='custom.css') }}">
+    <link href="{{ url_for('static', filename='bootstrap-3.3.7-dist/css/bootstrap-theme.min.css') }}" rel=stylesheet
+          type=text/css>
+    <link href="{{ url_for('static', filename='custom.css') }}" rel=stylesheet type=text/css>
 
-  </head>
-  <body>
-    <div class="container">
-        <h1>Welcome to <b>nfcmusik!</b></h1>
-        <p>WiFi connection is shut off 3 minutes after startup, refresh this page to reset shutdown timer.</p>
-    </div>
+</head>
+<body>
+<div class="container">
+    <h1>Welcome to <b>nfcmusik!</b></h1>
+    <p>WiFi connection is shut off 3 minutes after startup, refresh this page to reset shutdown timer.</p>
+</div>
 
-    <div class="container" id="statusBox">
-    </div>
+<div class="container" id="statusBox">
+</div>
 
-    <div class="container" id="nfcStatusBox">
-    </div>
+<div class="container" id="nfcStatusBox">
+</div>
 
-    <div class="container">
-        <h2>Available music files</h2>
-        <ul id=musicFiles></ul>
-    </div>
+<div class="container">
+    <h2>Available music files</h2>
+    <ul id=musicFiles></ul>
+</div>
 
-    <script src="{{ url_for('static', filename='jquery-3.1.0.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='bootstrap-3.3.7-dist/js/bootstrap.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='controller.js') }}"></script>
+<script src="{{ url_for('static', filename='jquery-3.1.0.min.js') }}"></script>
+<script src="{{ url_for('static', filename='bootstrap-3.3.7-dist/js/bootstrap.min.js') }}"></script>
+<script src="{{ url_for('static', filename='controller.js') }}"></script>
 
-    <script>
+<script>
     // initialization
-    $( document ).ready(function() {
+    $(document).ready(function () {
         refreshMusicFiles();
         setStatus("Ready!");
         pollNFC();
     });
-    </script>
-  </body>
+</script>
+</body>
 </html>

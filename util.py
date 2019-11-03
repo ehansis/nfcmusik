@@ -13,4 +13,3 @@ def set_volume(percentage):
 
     # set the volume via amixer
     subprocess.call(["amixer", "-M", "set", "--", "PCM", str(percentage) + "%"])
-
