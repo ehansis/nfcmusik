@@ -29,15 +29,13 @@
       become: no
       delegate_to: localhost
 
-    - name: Archive your current git workspace as preparation for installation within the image
-      command: git archive --format=tar --output build/nfcmusik-git-repo.tar HEAD
+    - name: Archive your current git workspace (including uncommited changes) as preparation for installation within the image
+      shell: git ls-files -z | xargs -0 tar -czvf build/nfcmusik-git-repo.tgz
       args:
         chdir: "{{ playbook_dir }}/../.."
       delegate_to: localhost
       become: no
       tags: src
-      notify:
-        - nfcmusik-restart
 
   tasks:
     - name: Install packages required to build the python app
