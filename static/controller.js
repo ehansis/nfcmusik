@@ -18,7 +18,30 @@ function refreshMusicFiles() {
                 .click(function() { writeNFC(f.hash); })
                 .text('write to tag')
                 .appendTo(li);
-                        
+        });
+    });
+}
+
+// reload list of VLC actions and render it
+function refreshVLCActions() {
+    $.getJSON('json/vlcactions', function(data) {
+        var fileList = $("#vlcActions");
+
+        fileList.empty();
+
+        $.each(data, function(i, f) {
+            var li = $('<li/>')
+                .attr('id', f.hash)
+                .addClass('musicFileItem')
+                .text(f.name + '   ')
+                .appendTo(fileList);
+
+            var href = $('<button/>')
+                .attr('type', 'button')
+                .addClass("btn btn-default")
+                .click(function() { writeNFC(f.hash); })
+                .text('write to tag')
+                .appendTo(li);
         });
     });
 }

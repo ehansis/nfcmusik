@@ -8,3 +8,5 @@ pygame==1.9.6
 rpi.gpio==0.7.0
 spidev==3.4
 werkzeug==0.16.0
+python-vlc==3.0.7110
+beautifulsoup4==4.9.0

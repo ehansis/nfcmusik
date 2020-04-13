@@ -8,9 +8,11 @@ from multiprocessing import Process, Lock, Manager
 from os import path
 
 import pygame
+import vlc
 from flask import Flask, render_template, request
 
 import settings
+import streams
 import util
 from rfid import RFID
 
@@ -33,6 +35,55 @@ CONTROL_BYTES = dict(MUSIC_FILE=b"\x11", VLC_PLAYER=b"\x21")
 
 # global debug output flag
 DEBUG = False
+
+# VLC playback commands (names must be unique!)
+VLC_PAUSE = "pause"
+VLC_PLAY = "play"
+VLC_ACTIONS = [
+    dict(name="Pause", action=VLC_PAUSE),
+    dict(
+        name="NDR Mikado, neueste Folge",
+        action=VLC_PLAY,
+        url_func=streams.ndr_mikado_latest,
+    ),
+    dict(
+        name="BR Klaro - Nachrichten für Kinder, neueste Folge",
+        action=VLC_PLAY,
+        url_func=streams.br_klaro_latest,
+    ),
+    dict(
+        name="BR Betthupferl, neueste Folge",
+        action=VLC_PLAY,
+        url_func=streams.br_betthupferl,
+    ),
+    dict(
+        name="BR Geschichten für Kinder, neueste Folge",
+        action=VLC_PLAY,
+        url_func=streams.br_geschichten_fuer_kinder,
+    ),
+    dict(
+        name="BR Radio Mikro, neueste Folge",
+        action=VLC_PLAY,
+        url_func=streams.br_radio_mikro,
+    ),
+]
+
+
+def vlc_action_hash(action_id):
+    """
+    Get hash of VLC action, replace first byte with a control byte for VLC actions.
+    """
+    m = hashlib.md5()
+    m.update(action_id.encode('utf8'))
+    return CONTROL_BYTES["VLC_PLAYER"] + m.digest()[1:]
+
+
+# populate hashes for all VLC actions
+for a_ in VLC_ACTIONS:
+    a_["hash"] = vlc_action_hash(a_["name"])  # noqa
+
+# build dict, keyed by hashes
+vlc_actions_dict = {a_["hash"]: a_ for a_ in VLC_ACTIONS}
 
 
 class RFIDHandler(object):
@@ -69,22 +120,14 @@ class RFIDHandler(object):
         self.sleep = 0.5
 
         # music playing status
-        self.current_music = None
+        self.current_track = None
 
         # last played music file
-        self.previous_music = None
+        self.previous_track = None
 
-        # must have seen stop signal N times to stop music - avoid
-        # stopping if signal drops out briefly
-        self.stop_music_on_stop_count = 3
-
-        # to replay same music file, must have seen at least N periods
-        # of no token - avoid replaying if token is left on device
-        # but signal drops out briefly
-        self.replay_on_stop_count = 3
-
-        # stop signal counter
-        self.stop_count = 0
+        # VLC player instance
+        self.vlc_instance = vlc.Instance("--input-repeat=-1", "--aout=alsa")
+        self.vlc_player = self.vlc_instance.media_player_new()
 
     def poll_loop(self):
         """
@@ -265,24 +308,20 @@ class RFIDHandler(object):
             bin_data = bytes(self.data)
 
             if bin_data[:1] == CONTROL_BYTES["MUSIC_FILE"]:
+                self.vlc_player.pause()
 
                 if bin_data in self.music_files_dict:
                     file_name = self.music_files_dict[bin_data]
                     file_path = path.join(settings.MUSIC_ROOT, file_name)
 
-                    if file_name != self.current_music:
+                    if file_name != self.current_track:
+                        if pygame.mixer.music.get_busy():
+                            pygame.mixer.music.stop()
 
-                        # only replay same music file if we saw at least N periods
-                        # of no token
-                        if path.exists(file_path) and (
-                            file_name != self.previous_music
-                            or self.stop_count >= self.replay_on_stop_count
-                        ):
+                        if path.exists(file_path):
                             logger.info(f"Playing music file: {file_path}")
-
-                            # play music file
-                            self.current_music = file_name
-                            self.previous_music = file_name
+                            self.current_track = file_name
+                            self.previous_track = file_name
                             pygame.mixer.music.load(file_path)
                             pygame.mixer.music.play()
 
@@ -290,24 +329,39 @@ class RFIDHandler(object):
                             if not path.exists(file_path):
                                 logger.debug(f"File not found: {file_path}")
 
-                    # token seen - reset stop counter
-                    self.stop_count = 0
-
-                else:
-                    logger.debug("Got music file control byte, but unknown file hash")
-            else:
-                logger.debug("Unknown control byte")
-        else:
-            self.stop_count += 1
-
-            logger.debug(f"Resetting action status, stop count {self.stop_count}")
-
-            # only stop after token absence for at least N times
-            if self.stop_count >= self.stop_music_on_stop_count:
-                self.current_music = None
-
+            elif bin_data[:1] == CONTROL_BYTES["VLC_PLAYER"]:
                 if pygame.mixer.music.get_busy():
                     pygame.mixer.music.stop()
+
+                if bin_data in vlc_actions_dict:
+                    action = vlc_actions_dict[bin_data]
+
+                    if action["action"] == VLC_PLAY:
+                        if action["name"] != self.current_track:
+                            if action["name"] == self.previous_track:
+                                # we are paused, unpause
+                                self.current_track = self.previous_track
+                                self.vlc_player.play()
+                            else:
+                                self.current_track = action["name"]
+                                self.previous_track = action["name"]
+
+                                # start playback of new track
+                                url = action["url_func"]()
+                                if url is None:
+                                    logger.debug("Failed to get track URL")
+                                else:
+                                    media = self.vlc_instance.media_new(url)
+                                    self.vlc_player.set_media(media)
+                                    self.vlc_player.play()
+                    elif action["action"] == VLC_PAUSE and self.current_track is not None:
+                        self.current_track = None
+                        self.vlc_player.pause()
+
+                else:
+                    logger.debug("Got VLC action control byte, but unknown name hash")
+            else:
+                logger.debug("Unknown control byte")
 
 
 #
@@ -343,7 +397,7 @@ def music_file_hash(file_name):
 @app.route("/json/musicfiles")
 def music_files():
     """
-    Get a list of music files and file identifier hashes as JSON; also refresh 
+    Get a list of music files and file identifier hashes as JSON; also refresh
     internal cache of music files and hashes.
     """
     global music_files_dict
@@ -360,10 +414,23 @@ def music_files():
         )
         music_files_dict[file_hash] = file_name
 
-        # set music files dict in RFID handler
-        rfid_handler.set_music_files_dict(music_files_dict)
+    # set music files dict in RFID handler
+    rfid_handler.set_music_files_dict(music_files_dict)
 
     return json.dumps(out)
+
+
+@app.route("/json/vlcactions")
+def vlc_actions():
+    """
+    Get a list of VLC actions identifier hashes as JSON; also refresh
+    internal cache of VLC actions and hashes.
+    """
+    actions = [
+        dict(name=a["name"], hash=binascii.b2a_hex(a["hash"]).decode("utf8"))
+        for a in VLC_ACTIONS
+    ]
+    return json.dumps(actions)
 
 
 @app.route("/json/readnfc")
@@ -394,6 +461,9 @@ def read_nfc():
                 description = "Play music file " + music_files_dict[data]
             else:
                 description = "Play a music file not currently present on the device"
+        elif data[:1] == CONTROL_BYTES["VLC_PLAYER"]:
+            action = vlc_actions_dict[data]
+            description = "VLC: " + action["name"]
 
     # output container
     out = dict(
@@ -434,11 +504,27 @@ def write_nfc():
                 dict(message="Successfully wrote NFC tag for file: " + file_name)
             )
         else:
-            return json.dumps(dict(message="Error writing NFC tag data " + hex_data))
+            return json.dumps(dict(message="Error writing NFC tag data " + str(hex_data)))
+
+    elif data[:1] == CONTROL_BYTES["VLC_PLAYER"]:
+        if data not in vlc_actions_dict:
+            return json.dumps(dict(message="Unknown hash value!"))
+
+        # write tag
+        success = rfid_handler.write(data)
+
+        if success:
+            action_name = vlc_actions_dict[data]["name"]
+            return json.dumps(
+                dict(message="Successfully wrote NFC tag for VLC action: " + action_name)
+            )
+        else:
+            return json.dumps(dict(message="Error writing NFC tag data " + str(hex_data)))
 
     else:
+        # noinspection PyTypeChecker
         return json.dumps(
-            dict(message="Unknown control byte: " + str(binascii.b2a_hex(data[0])))
+            dict(message="Unknown control byte: " + str(binascii.b2a_hex(data[:1])))
         )
 
 

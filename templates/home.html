@@ -24,6 +24,11 @@
 </div>
 
 <div class="container">
+    <h2>VLC player actions</h2>
+    <ul id=vlcActions></ul>
+</div>
+
+<div class="container">
     <h2>Available music files</h2>
     <ul id=musicFiles></ul>
 </div>
@@ -36,6 +41,7 @@
     // initialization
     $(document).ready(function () {
         refreshMusicFiles();
+        refreshVLCActions();
         setStatus("Ready!");
         pollNFC();
     });
