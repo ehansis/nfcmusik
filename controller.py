@@ -29,9 +29,7 @@ Autostart: 'crontab -e', then add line
 """
 
 # control bytes for NFC payload
-CONTROL_BYTES = dict(
-    MUSIC_FILE=b'\x11',
-)
+CONTROL_BYTES = dict(MUSIC_FILE=b"\x11", VLC_PLAYER=b"\x21")
 
 # global debug output flag
 DEBUG = False
@@ -125,7 +123,9 @@ class RFIDHandler(object):
                         err, data = rdr.read(self.page)
 
                         if not err:
-                            logger.debug(f"RFIDHandler poll_loop: Read tag data: {data}")
+                            logger.debug(
+                                f"RFIDHandler poll_loop: Read tag data: {data}"
+                            )
 
                             # all good, store data to shared mem
                             for i in range(5):
@@ -134,10 +134,14 @@ class RFIDHandler(object):
                                 self.data[i] = data[i]
 
                         else:
-                            logger.debug("RFIDHandler poll_loop: Error returned from read()")
+                            logger.debug(
+                                "RFIDHandler poll_loop: Error returned from read()"
+                            )
 
                     else:
-                        logger.debug("RFIDHandler poll_loop: Error returned from anticoll()")
+                        logger.debug(
+                            "RFIDHandler poll_loop: Error returned from anticoll()"
+                        )
 
                 # clean up
                 rdr.cleanup()
@@ -179,19 +183,25 @@ class RFIDHandler(object):
                     err = False
                     for i in range(4):
                         page = self.page + i
-                        page_data = data[4 * i: 4 * i + 4] + b'\x00' * 12
+                        page_data = data[4 * i : 4 * i + 4] + b"\x00" * 12
 
                         # read data once (necessary for successful writing?)
                         err_read, _ = rdr.read(page)
 
                         if err:
-                            logger.debug("Error signaled on reading page {:d} before writing".format(page))
+                            logger.debug(
+                                "Error signaled on reading page {:d} before writing".format(
+                                    page
+                                )
+                            )
 
                         # write data
                         err |= rdr.write(page, page_data)
 
                         if err:
-                            logger.debug(f'Error signaled on writing page {page:d} with data {page_data:s}')
+                            logger.debug(
+                                f"Error signaled on writing page {page:d} with data {page_data:s}"
+                            )
 
                     if not err:
                         logger.debug("RFIDHandler write: successfully wrote tag data")
@@ -254,7 +264,7 @@ class RFIDHandler(object):
         if self.data[0] is not None:
             bin_data = bytes(self.data)
 
-            if bin_data[:1] == CONTROL_BYTES['MUSIC_FILE']:
+            if bin_data[:1] == CONTROL_BYTES["MUSIC_FILE"]:
 
                 if bin_data in self.music_files_dict:
                     file_name = self.music_files_dict[bin_data]
@@ -265,8 +275,10 @@ class RFIDHandler(object):
                         # only replay same music file if we saw at least N periods
                         # of no token
                         if path.exists(file_path) and (
-                                file_name != self.previous_music or self.stop_count >= self.replay_on_stop_count):
-                            logger.info(f'Playing music file: {file_path}')
+                            file_name != self.previous_music
+                            or self.stop_count >= self.replay_on_stop_count
+                        ):
+                            logger.info(f"Playing music file: {file_path}")
 
                             # play music file
                             self.current_music = file_name
@@ -276,15 +288,15 @@ class RFIDHandler(object):
 
                         else:
                             if not path.exists(file_path):
-                                logger.debug(f'File not found: {file_path}')
+                                logger.debug(f"File not found: {file_path}")
 
                     # token seen - reset stop counter
                     self.stop_count = 0
 
                 else:
-                    logger.debug('Got music file control byte, but unknown file hash')
+                    logger.debug("Got music file control byte, but unknown file hash")
             else:
-                logger.debug('Unknown control byte')
+                logger.debug("Unknown control byte")
         else:
             self.stop_count += 1
 
@@ -325,7 +337,7 @@ def music_file_hash(file_name):
     """
     m = hashlib.md5()
     m.update(file_name.encode("utf8"))
-    return CONTROL_BYTES['MUSIC_FILE'] + m.digest()[1:]
+    return CONTROL_BYTES["MUSIC_FILE"] + m.digest()[1:]
 
 
 @app.route("/json/musicfiles")
@@ -336,15 +348,16 @@ def music_files():
     """
     global music_files_dict
 
-    file_paths = sorted(glob.glob(path.join(settings.MUSIC_ROOT, '*')))
+    file_paths = sorted(glob.glob(path.join(settings.MUSIC_ROOT, "*")))
 
     out = []
     music_files_dict = dict()
     for file_path in file_paths:
         file_name = path.split(file_path)[1]
         file_hash = music_file_hash(file_name)
-        out.append(dict(name=file_name,
-                        hash=binascii.b2a_hex(file_hash).decode("utf8")))
+        out.append(
+            dict(name=file_name, hash=binascii.b2a_hex(file_hash).decode("utf8"))
+        )
         music_files_dict[file_hash] = file_name
 
         # set music files dict in RFID handler
@@ -375,17 +388,19 @@ def read_nfc():
     else:
         hex_data = binascii.b2a_hex(data)
 
-        description = 'Unknown control byte or tag empty'
-        if data[:1] == CONTROL_BYTES['MUSIC_FILE']:
+        description = "Unknown control byte or tag empty"
+        if data[:1] == CONTROL_BYTES["MUSIC_FILE"]:
             if data in music_files_dict:
-                description = 'Play music file ' + music_files_dict[data]
+                description = "Play music file " + music_files_dict[data]
             else:
-                description = 'Play a music file not currently present on the device'
+                description = "Play a music file not currently present on the device"
 
     # output container
-    out = dict(uid=hex_uid.decode('utf8'),
-               data=hex_data.decode('utf8'),
-               description=description)
+    out = dict(
+        uid=hex_uid.decode("utf8"),
+        data=hex_data.decode("utf8"),
+        description=description,
+    )
 
     return json.dumps(out)
 
@@ -397,7 +412,7 @@ def write_nfc():
 
     Data is contained in get argument 'data'.
     """
-    hex_data = request.args.get('data').encode('utf8')
+    hex_data = request.args.get("data").encode("utf8")
 
     if hex_data is None:
         logger.error("No data argument given for writenfc endpoint")
@@ -406,7 +421,7 @@ def write_nfc():
     # convert from hex to bytes
     data = binascii.a2b_hex(hex_data)
 
-    if data[:1] == CONTROL_BYTES['MUSIC_FILE']:
+    if data[:1] == CONTROL_BYTES["MUSIC_FILE"]:
         if data not in music_files_dict:
             return json.dumps(dict(message="Unknown hash value!"))
 
@@ -415,12 +430,16 @@ def write_nfc():
 
         if success:
             file_name = music_files_dict[data]
-            return json.dumps(dict(message="Successfully wrote NFC tag for file: " + file_name))
+            return json.dumps(
+                dict(message="Successfully wrote NFC tag for file: " + file_name)
+            )
         else:
             return json.dumps(dict(message="Error writing NFC tag data " + hex_data))
 
     else:
-        return json.dumps(dict(message='Unknown control byte: ' + str(binascii.b2a_hex(data[0]))))
+        return json.dumps(
+            dict(message="Unknown control byte: " + str(binascii.b2a_hex(data[0])))
+        )
 
 
 @app.route("/")
@@ -436,6 +455,4 @@ if __name__ == "__main__":
     music_files()
 
     # run server
-    app.run(host=settings.SERVER_HOST_MASK,
-            port=settings.SERVER_PORT,
-            threaded=True)
+    app.run(host=settings.SERVER_HOST_MASK, port=settings.SERVER_PORT, threaded=True)
