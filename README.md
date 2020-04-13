@@ -104,18 +104,6 @@ to connect to you local WiFi by editing files on the SD Card.
 Follow [these instructions](https://raspberrypi.stackexchange.com/a/57023) to do so.
 After booting, your Pi should be accessible by `ssh pi@raspberrypi` from the terminal.
 
-### Wifi Access Point
-
-Configure the RPi to act as a WLAN access point on interface `wlan0`. 
-See, for example, [this site](https://frillip.com/using-your-raspberry-pi-3-as-a-wifi-access-point-with-hostapd/) for instructions.
-Note the static IP that you assign to the RasPi while configuring. This will be the address where
-you can access the user interface (also see below).
-
-The `wlan0` interface is automatically shut down 3 minutes after startup, to avoid unneccessary 'radiation' and
-to reduce interference in the speakers. Refreshing the home page of the user interface resets
-the shutdown timer. After the access point has shut down, you would need to re-boot the RasPi to 
-reconnect (or connect to it via LAN).
-
 ### Base OS
 
 The code was built and tested with Raspbian Jessie (2016-05-27).
