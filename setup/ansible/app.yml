@@ -80,7 +80,7 @@
 
     - name: Transfer and unpack git archive
       unarchive:
-        src: "{{ playbook_dir }}/../../build/nfcmusik-git-repo.tar"
+        src: "{{ playbook_dir }}/../../build/nfcmusik-git-repo.tgz"
         dest: "{{ nfcmusik_home }}"
         group: "{{ nfcmusik_run_group }}"
       tags: src
