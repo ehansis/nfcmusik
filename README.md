@@ -2,6 +2,7 @@
 
 **This branch** differs from the master branch as follows:
 - Don't configure Pi as local access point, hook it into the home WiFi (this needs to be done manually during initial setup)
+- Run with Python3 (link `/usr/bin/python` to `/usr/bin/python3` manually, if needed!)
 - Extend functionality
   - Play web radio for kids
   - Announce the time

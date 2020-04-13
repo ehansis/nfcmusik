@@ -1,10 +1,8 @@
 import binascii
-import datetime
 import glob
 import hashlib
 import json
 import logging
-import subprocess
 import time
 from multiprocessing import Process, Lock, Manager
 from os import path
@@ -32,11 +30,12 @@ Autostart: 'crontab -e', then add line
 
 # control bytes for NFC payload
 CONTROL_BYTES = dict(
-    MUSIC_FILE='\x11',
+    MUSIC_FILE=b'\x11',
 )
 
 # global debug output flag
 DEBUG = False
+
 
 class RFIDHandler(object):
     """
@@ -180,7 +179,7 @@ class RFIDHandler(object):
                     err = False
                     for i in range(4):
                         page = self.page + i
-                        page_data = [ord(c) for c in data[4 * i: 4 * i + 4]] + [0] * 12
+                        page_data = data[4 * i: 4 * i + 4] + b'\x00' * 12
 
                         # read data once (necessary for successful writing?)
                         err_read, _ = rdr.read(page)
@@ -217,7 +216,7 @@ class RFIDHandler(object):
         with self.mutex:
             data = list(self.data)
         if data[0] is not None:
-            return "".join([chr(c) for c in data])
+            return bytes(data)
         else:
             return None
 
@@ -228,7 +227,7 @@ class RFIDHandler(object):
         with self.mutex:
             uid = list(self.uid)
         if uid[0] is not None:
-            return "".join([chr(c) for c in uid])
+            return bytes(uid)
         else:
             return None
 
@@ -253,9 +252,9 @@ class RFIDHandler(object):
 
         # check if we have valid data
         if self.data[0] is not None:
-            bin_data = "".join([chr(c) for c in self.data])
+            bin_data = bytes(self.data)
 
-            if bin_data[0] == CONTROL_BYTES['MUSIC_FILE']:
+            if bin_data[:1] == CONTROL_BYTES['MUSIC_FILE']:
 
                 if bin_data in self.music_files_dict:
                     file_name = self.music_files_dict[bin_data]
@@ -325,7 +324,7 @@ def music_file_hash(file_name):
     Get hash of music file name, replace first byte with a control byte for music playing.
     """
     m = hashlib.md5()
-    m.update(file_name)
+    m.update(file_name.encode("utf8"))
     return CONTROL_BYTES['MUSIC_FILE'] + m.digest()[1:]
 
 
@@ -345,7 +344,7 @@ def music_files():
         file_name = path.split(file_path)[1]
         file_hash = music_file_hash(file_name)
         out.append(dict(name=file_name,
-                        hash=binascii.b2a_hex(file_hash)))
+                        hash=binascii.b2a_hex(file_hash).decode("utf8")))
         music_files_dict[file_hash] = file_name
 
         # set music files dict in RFID handler
@@ -365,27 +364,27 @@ def read_nfc():
 
     uid = rfid_handler.get_uid()
     if uid is None:
-        hex_uid = "none"
+        hex_uid = b"none"
     else:
         hex_uid = binascii.b2a_hex(uid)
 
     data = rfid_handler.get_data()
     if data is None:
-        hex_data = "none"
+        hex_data = b"none"
         description = "No tag present"
     else:
         hex_data = binascii.b2a_hex(data)
 
         description = 'Unknown control byte or tag empty'
-        if data[0] == CONTROL_BYTES['MUSIC_FILE']:
+        if data[:1] == CONTROL_BYTES['MUSIC_FILE']:
             if data in music_files_dict:
                 description = 'Play music file ' + music_files_dict[data]
             else:
                 description = 'Play a music file not currently present on the device'
 
     # output container
-    out = dict(uid=hex_uid,
-               data=hex_data,
+    out = dict(uid=hex_uid.decode('utf8'),
+               data=hex_data.decode('utf8'),
                description=description)
 
     return json.dumps(out)
@@ -398,7 +397,7 @@ def write_nfc():
 
     Data is contained in get argument 'data'.
     """
-    hex_data = request.args.get('data')
+    hex_data = request.args.get('data').encode('utf8')
 
     if hex_data is None:
         logger.error("No data argument given for writenfc endpoint")
@@ -407,7 +406,7 @@ def write_nfc():
     # convert from hex to bytes
     data = binascii.a2b_hex(hex_data)
 
-    if data[0] == CONTROL_BYTES['MUSIC_FILE']:
+    if data[:1] == CONTROL_BYTES['MUSIC_FILE']:
         if data not in music_files_dict:
             return json.dumps(dict(message="Unknown hash value!"))
 
@@ -421,7 +420,7 @@ def write_nfc():
             return json.dumps(dict(message="Error writing NFC tag data " + hex_data))
 
     else:
-        return json.dumps(dict(message='Unknown control byte: ' + binascii.b2a_hex(data[0])))
+        return json.dumps(dict(message='Unknown control byte: ' + str(binascii.b2a_hex(data[0]))))
 
 
 @app.route("/")
