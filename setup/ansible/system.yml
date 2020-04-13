@@ -24,6 +24,4 @@
         update_cache: yes
 
   roles:
-    - hostapd
-    - systemd-resolved
     - rpi-if-spi

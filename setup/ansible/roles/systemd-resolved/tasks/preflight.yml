@@ -1,8 +1,0 @@
----
-- name: Mask services we don't need
-  systemd:
-    name: "{{ item }}"
-    masked: yes
-  with_items:
-    - dhcpcd
-    - networking

@@ -38,10 +38,6 @@ CONTROL_BYTES = dict(
 # global debug output flag
 DEBUG = False
 
-# shut down wlan0 interface N seconds after startup (or last server interaction)
-WLAN_OFF_DELAY = 180
-
-
 class RFIDHandler(object):
     """
     RFID handler
@@ -65,13 +61,6 @@ class RFIDHandler(object):
 
         # music files dictionary
         self.music_files_dict = self.manager.dict()
-
-        # startup time or last server interaction
-        self.startup = datetime.datetime.now()
-
-        # flag for inter-process communication: reset the startup time
-        self.reset_startup = self.manager.Value('c', 0)
-        self.reset_startup.value = 0
 
         # have we shut off WiFi already?
         self.is_wlan_off = False
@@ -251,12 +240,6 @@ class RFIDHandler(object):
             for k, v in mfd.items():
                 self.music_files_dict[k] = v
 
-    def reset_startup_timer(self):
-        """
-        Set flag to reset the startup timer
-        """
-        self.reset_startup.value = 1
-
     def stop_polling(self):
         """
         Stop polling loop
@@ -267,21 +250,6 @@ class RFIDHandler(object):
         """
         Act on NFC data - call this from within a mutex lock
         """
-
-        # check if we should reset the startup time
-        if self.reset_startup.value > 0:
-            self.reset_startup.value = 0
-            self.startup = datetime.datetime.now()
-
-        # if enough time has elapsed, shut off the WiFi interface
-        delta = (datetime.datetime.now() - self.startup).total_seconds()
-        if delta > WLAN_OFF_DELAY and not self.is_wlan_off:
-            logger.info("Shutting down WiFi")
-            self.is_wlan_off = True
-            subprocess.call(['sudo', 'ifdown', 'wlan0'])
-
-        if int(delta) % 10 == 0 and not self.is_wlan_off:
-            logger.info(f'Shutting down WiFi in (seconds): {WLAN_OFF_DELAY - delta}')
 
         # check if we have valid data
         if self.data[0] is not None:
@@ -458,9 +426,6 @@ def write_nfc():
 
 @app.route("/")
 def home():
-    # reset wlan shutdown counter when loading page
-    rfid_handler.reset_startup_timer()
-
     return render_template("home.html")
 
 

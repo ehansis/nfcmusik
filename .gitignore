@@ -125,3 +125,4 @@ ENV/
 .vagrant
 build
 !build/.gitkeep
+/.idea/

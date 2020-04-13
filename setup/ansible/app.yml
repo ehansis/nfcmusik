@@ -8,12 +8,26 @@
     nfcmusik_home: /usr/local/nfcmusik
 
   pre_tasks:
-    - name: Update requirements.txt
-      shell: pipenv --bare lock --requirements > requirements.txt
-      args:
-        chdir: "{{ playbook_dir }}/../.."
-      delegate_to: localhost
+    - name: Make sure pip is installed
+      apt: name=python3-pip state=present
+
+    - name: Make sure pipenv is installed
+      pip: name=pipenv executable=pip3
+
+#### This task updates the requirements.txt file from the environment of the host machine.
+#### Only do this, if you have a host env set up and want to modify requirements.txt accordingly.
+
+#    - name: Update requirements.txt
+#      shell: pipenv --bare lock --requirements > requirements.txt
+#      args:
+#        chdir: "{{ playbook_dir }}/../.."
+#      delegate_to: localhost
+#      become: no
+
+    - name: Make sure the build directory exists
+      file: path="{{ playbook_dir }}/../../build" state=directory
       become: no
+      delegate_to: localhost
 
     - name: Archive your current git workspace as preparation for installation within the image
       command: git archive --format=tar --output build/nfcmusik-git-repo.tar HEAD
@@ -21,6 +35,9 @@
         chdir: "{{ playbook_dir }}/../.."
       delegate_to: localhost
       become: no
+      tags: src
+      notify:
+        - nfcmusik-restart
 
   tasks:
     - name: Install packages required to build the python app
@@ -68,8 +85,15 @@
         src: "{{ playbook_dir }}/../../build/nfcmusik-git-repo.tar"
         dest: "{{ nfcmusik_home }}"
         group: "{{ nfcmusik_run_group }}"
+      tags: src
 
-    - name: Install nfcmusik from the repository
+    - name: Always trigger service restart when sources are uploaded
+      command: /bin/true
+      tags: src
+      notify:
+        - nfcmusik-restart
+
+    - name: Install nfcmusik requirements from the repository
       pip:
         requirements: "{{ nfcmusik_home }}/requirements.txt"
         executable: pip3
@@ -87,11 +111,9 @@
         enabled: yes
         state: started
         daemon_reload: yes
-      register: _nfcmusik_service_start
 
   handlers:
     - name: nfcmusik-restart
-      when: not _nfcmusik_service_start is changed
       systemd:
         name: nfcmusik
         state: restarted

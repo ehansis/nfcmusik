@@ -1,5 +1,13 @@
 # nfcmusik
 
+**This branch** differs from the master branch as follows:
+- Don't configure Pi as local access point, hook it into the home WiFi (this needs to be done manually during initial setup)
+- Extend functionality
+  - Play web radio for kids
+  - Announce the time
+  - ...
+  
+
 **Goal:** build a simple mp3 player that a toddler can use, based on a raspberry pi.
 
 A song is started by placing an NFC token on a sensor. Removing the token stops the music.
@@ -87,6 +95,13 @@ In order to make this work, you need to have the following tools installed:
 - [Ansible](https://www.ansible.com) (tested with Ansible 2.8)
 
 ### Manual Setup
+
+### Initial headless WiFi configuration
+
+If you have neither a keyboard and screen available, nor an Ethernet cable and router, you can configure your Pi
+to connect to you local WiFi by editing files on the SD Card.
+Follow [these instructions](https://raspberrypi.stackexchange.com/a/57023) to do so.
+After booting, your Pi should be accessible by `ssh pi@raspberrypi` from the terminal.
 
 ### Wifi Access Point
 
