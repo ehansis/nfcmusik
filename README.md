@@ -104,6 +104,9 @@ to connect to you local WiFi by editing files on the SD Card.
 Follow [these instructions](https://raspberrypi.stackexchange.com/a/57023) to do so.
 After booting, your Pi should be accessible by `ssh pi@raspberrypi` from the terminal.
 
+Note that you may have to re-do this configuration step if you swap out your Raspberry Pi but keep the same SD card.
+
+
 ### Base OS
 
 The code was built and tested with Raspbian Jessie (2016-05-27).
