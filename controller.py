@@ -66,6 +66,16 @@ VLC_ACTIONS = [
         action=VLC_PLAY,
         url_func=streams.br_radio_mikro,
     ),
+    dict(
+        name="BR Do Re Mikro, neueste Folge",
+        action=VLC_PLAY,
+        url_func=streams.br_do_re_mikro,
+    ),
+    dict(
+        name="Deutschlandradio Kultur Kinderhörspiel, neueste Folge",
+        action=VLC_PLAY,
+        url_func=streams.dr_kinderhoerspiel,
+    ),
 ]
 
 
